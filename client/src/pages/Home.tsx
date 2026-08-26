@@ -8,6 +8,17 @@ const sources = [
   { name: "Awesome Design Systems", type: "GITHUB REPO", title: "Sistemleri tek rotada keşfet", desc: "Açık kaynak design system, token ve pattern kütüphanelerini düzenli bir indeks gibi tara.", href: "https://github.com/alexpate/awesome-design-systems", tag: "Curated list", color: "paper", icon: Github },
   { name: "shadcn/ui Registry", type: "COMPONENTS", title: "Kopyalanabilir sistem mantığı", desc: "Kendi registry'ni kur, parçaları projenin içine al ve markana göre bük.", href: "https://ui.shadcn.com/docs/directory", tag: "Composable", color: "vermilion", icon: Code2 },
   { name: "Three.js", type: "3D WEB", title: "Web yüzeyine hacim ekle", desc: "WebGL'in karmaşıklığını yaratıcı prototipler ve etkileşimli 3D sahneler için yönet.", href: "https://threejs.org/", tag: "Explore 3D", color: "blue", icon: Orbit },
+  { name: "Liquid Gooey", type: "MOTION", title: "Arayüzü akışkanlaştır", desc: "React için sıvı morph ve move efektleri; mikro etkileşimleri daha dokunsal hale getirmek için.", href: "https://gooey.jakubantalik.com/", tag: "React effect", color: "cobalt", icon: Orbit },
+  { name: "Border Beam", type: "MOTION", title: "Dikkati kenarda dolaştır", desc: "Kart ve buton çevresinde hareket eden ışınla dikkat hiyerarşisi kur.", href: "https://beam.jakubantalik.com/", tag: "React effect", color: "paper", icon: Sparkles },
+  { name: "Liquid Metal", type: "SHADERS", title: "Metali sıvı bir sinyale çevir", desc: "Parlak metal yüzeyleri ve kenar ışığını deneysel landing page'lere taşı.", href: "https://metal.jakubantalik.com/", tag: "WebGL effect", color: "vermilion", icon: Orbit },
+  { name: "Thinking Orbs", type: "MOTION", title: "Düşünceyi kürelerle göster", desc: "Yükleme, bekleme veya üretim durumları için animasyonlu düşünce küreleri.", href: "https://orbs.jakubantalik.com/", tag: "Loader", color: "blue", icon: Orbit },
+  { name: "Magic UI", type: "COMPONENTS", title: "150+ hareketli parça", desc: "React, Tailwind ve Motion ile hazırlanmış ücretsiz açık kaynak bileşenler ve efektler.", href: "https://magicui.design/", tag: "Open source", color: "cobalt", icon: Sparkles },
+  { name: "Aceternity UI", type: "COMPONENTS", title: "Kopyala, sonra derinleştir", desc: "Animated cards, hero'lar, shader arka planları ve landing page blokları için güçlü katalog.", href: "https://ui.aceternity.com/components", tag: "Copy-paste", color: "paper", icon: Layers3 },
+  { name: "React Three Fiber", type: "3D WEB", title: "Three.js'i React'e bağla", desc: "Yeniden kullanılabilir, etkileşimli Three.js sahnelerini React ekosistemi içinde kur.", href: "https://docs.pmnd.rs/react-three-fiber/", tag: "Renderer", color: "vermilion", icon: Orbit },
+  { name: "GSAP", type: "MOTION", title: "Her şeyi zamanla", desc: "JavaScript'in dokunabildiği her şeyi yüksek performanslı timeline'larla hareket ettir.", href: "https://gsap.com/", tag: "Animation", color: "blue", icon: Sparkles },
+  { name: "Rive", type: "MOTION", title: "Animasyonu duruma bağla", desc: "Etkileşimli animasyonları tasarla, state'lerle kontrol et ve web runtime'ında çalıştır.", href: "https://rive.app/", tag: "Interactive", color: "cobalt", icon: Orbit },
+  { name: "Codrops Creative Hub", type: "INSPIRATION", title: "Deneysel yüzeyleri incele", desc: "Açık kaynak web demoları, creative coding deneyleri ve etkileşimli konseptler.", href: "https://tympanus.net/codrops/hub/", tag: "Experiments", color: "paper", icon: Grid2X2 },
+  { name: "Motion", type: "MOTION", title: "Arayüz hareketini sadeleştir", desc: "React, JavaScript ve Vue için production-grade animasyon kütüphanesi.", href: "https://motion.dev/", tag: "React motion", color: "vermilion", icon: Sparkles },
 ];
 
 const prompts = [
@@ -40,10 +51,10 @@ export default function Home() {
   const [activeFilter, setActiveFilter] = useState("ALL");
   const [saved, setSaved] = useState<string[]>([]);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const filters = ["ALL", "UI ELEMENTS", "PROMPTS", "SYSTEMS", "3D WEB"];
+  const filters = ["ALL", "UI ELEMENTS", "SYSTEMS", "MOTION", "3D WEB", "SHADERS"];
   const filteredSources = useMemo(() => sources.filter((item) => {
     const matchesQuery = `${item.name} ${item.title} ${item.desc}`.toLowerCase().includes(query.toLowerCase());
-    const matchesFilter = activeFilter === "ALL" || (activeFilter === "PROMPTS" ? false : item.type === activeFilter || (activeFilter === "SYSTEMS" && item.type === "GITHUB REPO"));
+    const matchesFilter = activeFilter === "ALL" || item.type === activeFilter || (activeFilter === "SYSTEMS" && item.type === "GITHUB REPO");
     return matchesQuery && matchesFilter;
   }), [query, activeFilter]);
   const toggleSave = (name: string) => setSaved((items) => items.includes(name) ? items.filter((item) => item !== name) : [...items, name]);
