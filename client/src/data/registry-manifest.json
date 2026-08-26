@@ -1,0 +1,29 @@
+{
+  "name": "Open Design Atlas Registry",
+  "version": "0.1.0",
+  "format": "component-registry/v1",
+  "source": "https://github.com/uiverse-io/galaxy",
+  "licensePolicy": "Only import code with verified redistribution permission; preserve attribution.",
+  "componentCount": 3802,
+  "dataFile": "uiverse-registry.json",
+  "mcpReady": true,
+  "mcpStatus": "manifest-only",
+  "recommendedOperations": [
+    "search_components",
+    "get_component",
+    "list_categories",
+    "get_registry_stats"
+  ],
+  "recordFields": [
+    "id",
+    "name",
+    "category",
+    "slug",
+    "source",
+    "license",
+    "attribution",
+    "sourceUrl",
+    "code.html",
+    "code.css"
+  ]
+}

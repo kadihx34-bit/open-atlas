@@ -19,3 +19,15 @@
 - [ ] Bileşenleri tek tek içeri aktarma yerine, kaynak sitelere yönlendiren MVP sınırını arayüzde belirt.
 - [ ] Kütüphane keşif alanını masaüstü ve mobilde doğrula.
 - [ ] Güncellenmiş sürüm için checkpoint oluştur.
+
+## Yerel component registry
+
+- [x] Uiverse Galaxy deposunun README ve lisans koşullarını denetle.
+- [x] Bileşenlerin kaynak, kategori, teknoloji, lisans, attribution, HTML/CSS/React/Tailwind kodu ve önizleme alanlarını tanımlayan registry modelini oluştur.
+- [x] Uiverse ve uygun açık lisanslı kaynaklardan kopyalanabilir örnek bileşenleri yerel veri dosyasına aktar.
+- [x] Lisansı belirsiz veya yeniden dağıtım izni olmayan içerikleri kod olarak içeri alma; yalnızca kaynak bağlantısı göster.
+- [x] Kaynak kartı tıklamasını harici site yerine dahili bileşen detay paneline bağla.
+- [x] Kod önizleme, framework sekmeleri, kopyalama ve attribution alanlarını ekle.
+- [x] MCP için registry endpoint/format sözleşmesini ve sitenin kişisel MCP araçlarına doğrudan erişemediğini belgelemek.
+- [x] Özel kullanım, erişim kontrolü ve dağıtım kararlarını proje dokümantasyonuna yaz.
+- [ ] Güncellenmiş registry deneyimini test et ve checkpoint oluştur.
