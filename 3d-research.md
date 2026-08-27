@@ -1,0 +1,24 @@
+# 3D Web Araştırma Notları
+
+## Karar
+
+Bu MVP için React Three Fiber + Three.js kullanılacak. React Three Fiber, Three.js için deklaratif bir React renderer'ıdır; React 19 ile R3F v9 eşleşir ve `Canvas`, `useFrame`, pointer eventleri gibi yapı taşları resmi dokümantasyonda yer alır. Drei, R3F için hazır kamera, kontrol, `Float`, `Sparkles`, `Environment`, `MeshDistortMaterial`, `ScrollControls` ve performans yardımcıları sunar. Bu proje için ağır harici model yüklemek yerine geometrik primitive'ler ve shader benzeri materyal hareketleri kullanılacak; böylece 3D vitrin hızlı açılır ve mobilde daha güvenli ölçeklenir.
+
+## Uygulanacak etkileşimler
+
+Sahne içinde pointer hareketi kamera/parallax yönünü değiştirir, geometriler sürekli düşük yoğunluklu bir render loop ile döner, pointer-over durumunda ölçek ve renk tepkisi verir, scroll ilerlemesi içerik katmanını açar. `prefers-reduced-motion` açık olduğunda sürekli hareket azaltılır; Canvas yüklenemezse CSS tabanlı fallback görünür.
+
+## Doğrulanmış kaynaklar
+
+| Kaynak | Rol | URL |
+|---|---|---|
+| Three.js | WebGL/3D çekirdeği ve temel sahne modeli | https://threejs.org/docs/ |
+| React Three Fiber | React renderer, Canvas ve useFrame | https://r3f.docs.pmnd.rs/getting-started/introduction |
+| R3F GitHub | MIT lisanslı kaynak repo ve ekosistem | https://github.com/pmndrs/react-three-fiber |
+| Drei | R3F hazır yardımcıları ve kontroller | https://drei.docs.pmnd.rs/ |
+| GSAP | İsteğe bağlı timeline/scroll orchestration | https://gsap.com/docs/v3/ |
+| Lenis | İsteğe bağlı smooth scroll | https://github.com/darkroomengineering/lenis |
+
+## Not
+
+Mevcut proje statik React frontend'dir. 3D paketleri eklemeden önce bundle etkisi ve mobile fallback birlikte doğrulanmalıdır. Kaynakların lisansları ve attribution bilgileri proje içinde korunmalıdır.
