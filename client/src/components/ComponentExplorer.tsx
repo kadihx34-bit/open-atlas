@@ -1,0 +1,63 @@
+// STYLE: Signal Atlas — the central component atlas: large readable preview cards, cobalt selection, vermilion route markers, internal detail drawer.
+import { useState } from "react";
+import { ArrowUpRight, Bell, Check, ChevronDown, Copy, Heart, Info, Menu, Search, Star, X } from "lucide-react";
+import { toast } from "sonner";
+
+type Demo = { id: string; name: string; category: string; description: string; code: string };
+const demos: Demo[] = [
+  { id: "buttons", name: "Buttons", category: "ACTIONS", description: "Primary, secondary, ghost, icon and destructive action states.", code: '<button class="primary">Continue →</button>' },
+  { id: "inputs", name: "Inputs", category: "FORMS", description: "Search, text, password, select and field states.", code: '<input placeholder="Search the atlas..." />' },
+  { id: "checkbox", name: "Checkbox & Radio", category: "FORMS", description: "Selection controls with checked, empty and focused states.", code: '<label><input type="checkbox" checked /> Remember route</label>' },
+  { id: "switch", name: "Switches", category: "FORMS", description: "Compact boolean controls for settings and preferences.", code: '<button class="switch on" aria-pressed="true">Motion</button>' },
+  { id: "tabs", name: "Tabs", category: "NAVIGATION", description: "Segmented navigation for related content views.", code: '<nav><button class="active">Overview</button><button>Activity</button></nav>' },
+  { id: "dropdown", name: "Dropdown", category: "NAVIGATION", description: "Context actions, sorting and compact route selection.", code: '<button>Sort by <span>Newest⌄</span></button>' },
+  { id: "dialog", name: "Dialog", category: "OVERLAYS", description: "Focused confirmation surface with a clear escape route.", code: '<dialog open><h2>Save route?</h2><button>Confirm</button></dialog>' },
+  { id: "toast", name: "Toast & Alert", category: "FEEDBACK", description: "Transient success, info and warning communication.", code: '<div role="status">Route saved successfully.</div>' },
+  { id: "badges", name: "Badges", category: "FEEDBACK", description: "Small metadata signals for status, type and release stage.", code: '<span class="badge">LIVE</span>' },
+  { id: "progress", name: "Progress & Slider", category: "FEEDBACK", description: "Progress, loading and range input patterns.", code: '<progress value="72" max="100">72%</progress>' },
+  { id: "cards", name: "Cards", category: "LAYOUT", description: "Content containers with hierarchy and interactive affordances.", code: '<article class="card"><h3>Field note</h3></article>' },
+  { id: "table", name: "Table", category: "DATA", description: "Dense data rows with status, index and action columns.", code: '<table><tr><th>Component</th><th>Status</th></tr></table>' },
+  { id: "pagination", name: "Pagination", category: "DATA", description: "Move through long component and resource collections.", code: '<nav aria-label="Pagination"><button>1</button><button>2</button></nav>' },
+  { id: "tooltip", name: "Tooltip", category: "OVERLAYS", description: "Short contextual explanation for unfamiliar actions.", code: '<button title="Copy component">⧉</button>' },
+  { id: "avatars", name: "Avatars", category: "IDENTITY", description: "People, teams and authorship in compact visual form.", code: '<img class="avatar" alt="Design team" />' },
+  { id: "accordion", name: "Accordion", category: "LAYOUT", description: "Progressive disclosure for long descriptions and FAQs.", code: '<details open><summary>Usage</summary><p>...</p></details>' },
+  { id: "menu", name: "Navigation Menu", category: "NAVIGATION", description: "Persistent and contextual routes for product surfaces.", code: '<nav><a href="#library">Libraries</a></nav>' },
+  { id: "empty", name: "Empty State", category: "FEEDBACK", description: "A useful next step when a collection has no result.", code: '<section><h2>No routes yet.</h2><button>Create one</button></section>' },
+];
+
+function ComponentDemo({ id, large = false }: { id: string; large?: boolean }) {
+  const [toggle, setToggle] = useState(true);
+  const [checked, setChecked] = useState(true);
+  const [tab, setTab] = useState("Overview");
+  const [progress, setProgress] = useState(72);
+  const [open, setOpen] = useState(false);
+  const [liked, setLiked] = useState(false);
+  const size = large ? "demo-large" : "";
+  if (id === "buttons") return <div className={`demo-surface ${size}`}><button className="atlas-btn primary" onClick={() => toast.success("Action fired")}>Continue <ArrowUpRight size={15} /></button><button className="atlas-btn secondary">Secondary</button><button className="atlas-icon" onClick={() => setLiked(!liked)} aria-label="Like"><Heart size={16} fill={liked ? "currentColor" : "none"} /></button><button className="atlas-btn danger">Delete</button></div>;
+  if (id === "inputs") return <div className={`demo-surface stack ${size}`}><label className="atlas-field"><Search size={16} /><input placeholder="Search the atlas..." /></label><div className="atlas-select">Select framework <ChevronDown size={15} /></div></div>;
+  if (id === "checkbox") return <div className={`demo-surface stack ${size}`}><label className="atlas-check"><input type="checkbox" checked={checked} onChange={() => setChecked(!checked)} /><span>{checked && <Check size={13} />}</span> Remember route</label><label className="atlas-check"><input type="radio" name={`radio-${id}`} defaultChecked /><span></span> Public collection</label></div>;
+  if (id === "switch") return <div className={`demo-surface center ${size}`}><button className={`atlas-switch ${toggle ? "on" : ""}`} onClick={() => setToggle(!toggle)}><span></span></button><b>Motion {toggle ? "on" : "off"}</b></div>;
+  if (id === "tabs") return <div className={`demo-surface stack ${size}`}><div className="atlas-tabs">{["Overview", "Activity", "Tokens"].map((item) => <button key={item} className={tab === item ? "active" : ""} onClick={() => setTab(item)}>{item}</button>)}</div><p className="demo-copy">Showing <b>{tab}</b> component surface.</p></div>;
+  if (id === "dropdown") return <div className={`demo-surface center ${size}`}><button className="atlas-btn secondary" onClick={() => setOpen(!open)}>Sort by Newest <ChevronDown size={15} /></button>{open && <div className="atlas-popover"><button onClick={() => setOpen(false)}>Newest</button><button onClick={() => setOpen(false)}>Most used</button><button onClick={() => setOpen(false)}>Recently saved</button></div>}</div>;
+  if (id === "dialog") return <div className={`demo-surface center ${size}`}><button className="atlas-btn primary" onClick={() => setOpen(true)}>Open dialog</button>{open && <div className="mini-dialog"><button className="close-demo" onClick={() => setOpen(false)}><X size={15} /></button><Info size={20} /><b>Save this route?</b><p>Your component is ready to use.</p><button className="atlas-btn primary" onClick={() => { setOpen(false); toast.success("Route saved"); }}>Confirm</button></div>}</div>;
+  if (id === "toast") return <div className={`demo-surface stack ${size}`}><div className="demo-alert"><Bell size={16} /><span><b>Route saved.</b><small>Changes are synced to your atlas.</small></span></div><button className="atlas-btn secondary" onClick={() => toast.info("This is an atlas toast")}>Show toast</button></div>;
+  if (id === "badges") return <div className={`demo-surface center ${size}`}><span className="atlas-badge live">LIVE</span><span className="atlas-badge cobalt">MIT</span><span className="atlas-badge outline">BETA</span></div>;
+  if (id === "progress") return <div className={`demo-surface stack ${size}`}><div className="atlas-progress"><span style={{ width: `${progress}%` }} /></div><input className="atlas-range" type="range" min="0" max="100" value={progress} onChange={(event) => setProgress(Number(event.target.value))} /><small>{progress}% complete</small></div>;
+  if (id === "cards") return <div className={`demo-surface ${size}`}><article className="mini-card"><span>01 / FIELD NOTE</span><h3>Design systems<br /><em>that move.</em></h3><button>Read note <ArrowUpRight size={13} /></button></article></div>;
+  if (id === "table") return <div className={`demo-surface ${size}`}><div className="mini-table"><div><b>COMPONENT</b><b>STATUS</b><b>INDEX</b></div><div><span>Border beam</span><i>Ready</i><small>001</small></div><div><span>Liquid gooey</span><i>Ready</i><small>002</small></div><div><span>Thinking orbs</span><i>Draft</i><small>003</small></div></div></div>;
+  if (id === "pagination") return <div className={`demo-surface center ${size}`}><div className="atlas-pagination"><button>←</button><button className="active">1</button><button>2</button><button>3</button><button>→</button></div></div>;
+  if (id === "tooltip") return <div className={`demo-surface center ${size}`}><button className="atlas-icon" title="Copy component" onClick={() => toast.success("Component copied")}><Copy size={16} /></button><span className="demo-hint">Hover for context</span></div>;
+  if (id === "avatars") return <div className={`demo-surface center ${size}`}><div className="avatar-stack"><span>OD</span><span>UX</span><span>3D</span><b>+8</b></div></div>;
+  if (id === "accordion") return <div className={`demo-surface stack ${size}`}><details open><summary>Usage guidelines <ChevronDown size={15} /></summary><p className="demo-copy">Use one clear action per surface and keep the route visible.</p></details><details><summary>Accessibility <ChevronDown size={15} /></summary></details></div>;
+  if (id === "menu") return <div className={`demo-surface ${size}`}><div className="mini-menu"><Menu size={18} /><b>OPEN ATLAS</b><span>Libraries</span><span>Templates</span><button>Explore</button></div></div>;
+  return <div className={`demo-surface center ${size}`}><Star size={24} color="#F05A3C" /><b>No routes yet.</b><button className="atlas-btn primary">Create one</button></div>;
+}
+
+export default function ComponentExplorer() {
+  const [query, setQuery] = useState("");
+  const [category, setCategory] = useState("ALL");
+  const [selected, setSelected] = useState<Demo | null>(null);
+  const categories = ["ALL", ...Array.from(new Set(demos.map((demo) => demo.category)))];
+  const visible = demos.filter((demo) => (category === "ALL" || demo.category === category) && `${demo.name} ${demo.category}`.toLowerCase().includes(query.toLowerCase()));
+  return <section className="explorer-section" id="explorer"><div className="explorer-header"><div><span className="section-kicker">07 / COMPONENT EXPLORER</span><h2>Her şey burada.<br /><em>tıkla, gör, al.</em></h2><p>Button'dan dialog'a, form alanından data tablosuna kadar temel UI yüzeylerini tek panelde deneyimle. Kartların tamamı dahili çalışır; repo'ya atılmaz.</p></div><div className="explorer-stats"><b>{demos.length}</b><span>PRIMITIVES<br />LIVE PREVIEWS</span></div></div><div className="explorer-toolbar"><label><Search size={17} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Bileşen ara..." /></label><div>{categories.map((item) => <button key={item} className={category === item ? "active" : ""} onClick={() => setCategory(item)}>{item}</button>)}</div></div><div className="explorer-grid">{visible.map((demo, index) => <article className="explorer-card" key={demo.id} onClick={() => setSelected(demo)}><div className="explorer-card-top"><span>0{(index % 9) + 1} / LIVE</span><ArrowUpRight size={16} /></div><ComponentDemo id={demo.id} /><div className="explorer-card-info"><div><span>{demo.category}</span><h3>{demo.name}</h3><p>{demo.description}</p></div><button onClick={(event) => { event.stopPropagation(); setSelected(demo); }}>AÇ / KODU GÖR</button></div></article>)}</div>{selected && <div className="explorer-drawer-backdrop" onClick={() => setSelected(null)}><aside className="explorer-drawer" onClick={(event) => event.stopPropagation()}><div className="drawer-head"><div><span>{selected.category} / LIVE COMPONENT</span><h3>{selected.name}</h3></div><button onClick={() => setSelected(null)} aria-label="Kapat"><X size={18} /></button></div><ComponentDemo id={selected.id} large /><p>{selected.description}</p><div className="drawer-code"><div><span>STARTER MARKUP</span><button onClick={() => { navigator.clipboard?.writeText(selected.code); toast.success("Kod kopyalandı"); }}><Copy size={14} /> KOPYALA</button></div><pre>{selected.code}</pre></div><a href="https://github.com/uiverse-io/galaxy" target="_blank" rel="noreferrer">Kaynak lisansını gör <ArrowUpRight size={14} /></a></aside></div>}</section>;
+}

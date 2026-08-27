@@ -22,3 +22,16 @@ Sahne içinde pointer hareketi kamera/parallax yönünü değiştirir, geometril
 ## Not
 
 Mevcut proje statik React frontend'dir. 3D paketleri eklemeden önce bundle etkisi ve mobile fallback birlikte doğrulanmalıdır. Kaynakların lisansları ve attribution bilgileri proje içinde korunmalıdır.
+
+## Genişletme için doğrulanan ek bulgular
+
+React Three Fiber resmi GitHub deposu, Three.js'i React içinde deklaratif, yeniden kullanılabilir ve etkileşimli bileşenlerle kullanmayı tanımlıyor; README'de R3F v9'un React 19 ile eşleştiği ve MIT lisans bilgisinin repo içinde bulunduğu görülüyor. Drei dokümantasyonu, R3F için hazır soyutlamalar ve yardımcılar sunuyor; sahne kütüphanesinde kamera, kontrol, ışık, environment, materyal ve scroll yardımcıları ayrı kategoriler olarak ele alınacak. Bu doğrulama sonucunda atlasın 3D sistemi doğrudan kaynak sitelere yönlendirme yerine kendi primitive ve motion registry'sini sunacak; harici repo bağlantısı yalnızca kaynak/attribution için ikincil kalacak.
+
+| Kaynak | Atlas'ta kullanılacak rol | Lisans / kullanım kararı |
+|---|---|---|
+| Three.js docs/examples | Primitive, camera, material ve shader referansları | Kendi uygulama kodumuz; örneklerin lisansını ayrıca kontrol et |
+| pmndrs/react-three-fiber | React Canvas ve render loop katmanı | MIT repo; proje bağımlılığı olarak kullan |
+| pmndrs/drei | Hazır 3D yardımcılarının referansı | Bağımlılığı bundle boyutuna göre seç; kullanılmayan yardımcıları içeri alma |
+| postprocessing | Bloom, noise, vignette ve renk katmanı referansı | Sürüm/lisans kontrolü sonrası opsiyonel katman |
+| GSAP / Motion | Timeline ve UI geçişleri için referans | Sadece gerçekten kullanılan motion primitive'lerini ekle |
+| Lenis | Smooth scroll referansı | Varsayılan değil; erişilebilirlik ve performans testinden sonra opsiyonel |

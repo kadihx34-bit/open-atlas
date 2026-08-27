@@ -44,3 +44,28 @@
 - [x] Kaynak/lisans/attribution bilgisini 3D vitrin ve UI Playground içinde görünür tut.
 - [x] TypeScript, production build, masaüstü ve mobil görünümü doğrula.
 - [x] Güncellenmiş sürüm için checkpoint oluştur.
+
+## Component Explorer düzeltmesi
+
+- [ ] Kaynak kartlarındaki ana tıklamayı harici repo yerine dahili Component Explorer'a bağla.
+- [ ] Küçük iframe kartlarını büyüt; kare içinde bileşenin tamamı okunur ve görünür olsun.
+- [ ] Tüm temel UI kontrollerini tek bir genel Explorer ekranında grupla ve görünür kıl.
+- [ ] Her bileşen için büyük etkileşimli önizleme, isim, kategori, teknoloji ve kod paneli oluştur.
+- [ ] Bileşen detayına kopyalama, varyant/değişken ve kaynak bilgisi aksiyonlarını ekle.
+- [ ] Kaynak/repo linklerini yalnızca ikincil “kaynağı gör” aksiyonu olarak tut.
+- [ ] Mobil görünümde kart ve detay panelini kullanılabilir hale getir.
+- [ ] Etkileşimleri, TypeScript ve production build'i doğrula; checkpoint oluştur.
+
+## Three.js ve motion sistemi genişletmesi
+
+- [x] Three.js, React Three Fiber, drei, postprocessing, GSAP/Motion ve Lenis kaynaklarını resmi repo/doküman ve lisans bilgileriyle araştır.
+- [x] 3D bileşen veri modelini oluştur: primitive, material, camera, control, lighting, postprocessing, interaction ve motion alanları.
+- [x] 10 ayrı sanatsal Three.js sahnesi tasarla: orbit, liquid, particle, typography, crystal, tunnel, terrain, ribbons, kinetic grid ve product stage.
+- [x] 3D Explorer ekranında sahneleri büyük canlı önizleme, kategori filtreleri, teknoloji etiketleri ve dahili detay paneliyle göster.
+- [x] Yeniden kullanılabilir 3D bileşenleri oluştur: orbit rig, floating object, pointer camera, particle field, shader material, scroll reveal, camera rail ve signal lighting.
+- [x] Motion design katmanını oluştur; giriş, hover, scroll, transition ve reduced-motion durumlarını ortak tokenlarla yönet.
+- [x] Bu sistemi kullanarak normal UI + motion + 3D birleşimi olan tek parça tamamlanmış showcase site üret.
+- [x] Harici kaynakları ikincil referans olarak tut; lisans/attribution bilgilerini görünür göster.
+- [x] Canvas lazy-load, düşük DPR, WebGL fallback, mobil kalite profili ve prefers-reduced-motion desteğini doğrula.
+- [x] TypeScript, production build ve temsilî masaüstü/mobil ekranları test et.
+- [ ] Geliştirilmiş 3D sistem için checkpoint oluştur.
