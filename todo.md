@@ -69,3 +69,16 @@
 - [x] Canvas lazy-load, düşük DPR, WebGL fallback, mobil kalite profili ve prefers-reduced-motion desteğini doğrula.
 - [x] TypeScript, production build ve temsilî masaüstü/mobil ekranları test et.
 - [ ] Geliştirilmiş 3D sistem için checkpoint oluştur.
+
+## Local Library ve 12 dahili site MVP'si
+
+- [x] 02 / LOCAL COMPONENT LIBRARY bölümünü 07 / COMPONENT EXPLORER ile aynı genel arayüze bağla.
+- [x] Local Library içinde tüm bileşenleri görünür, büyük önizlemeli, arama/filtre/kategori ve dahili detay paneliyle sun.
+- [x] İnternetten lisans kontrollü birkaç örnek bileşeni, kaynak ve attribution alanlarıyla ekle.
+- [x] 10 UI tabanlı siteyi mevcut shared component sistemiyle dahili site deneyimlerine dönüştür.
+- [x] Ayrı bir 3D landing site ve scroll-driven 3D ürün hikâyesi oluştur; toplam deneyim sayısını 12 yap.
+- [x] 12 site arasında dahili site seçici, önizleme, kullanılan bileşen listesi ve kod/recipe aksiyonu ekle.
+- [x] Çalışmayan Three.js presetlerinde render loop, geometry, material ve fallback sorunlarını düzelt.
+- [x] 3D Library'de her sahne için reset, pointer, reduced-motion ve mobil performans durumlarını doğrula.
+- [x] TypeScript, production build, dahili tıklama akışları ve mobil ekranları test et.
+- [x] Tam güncelleme için checkpoint oluştur.
