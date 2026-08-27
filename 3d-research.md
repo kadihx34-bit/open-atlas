@@ -35,3 +35,7 @@ React Three Fiber resmi GitHub deposu, Three.js'i React içinde deklaratif, yeni
 | postprocessing | Bloom, noise, vignette ve renk katmanı referansı | Sürüm/lisans kontrolü sonrası opsiyonel katman |
 | GSAP / Motion | Timeline ve UI geçişleri için referans | Sadece gerçekten kullanılan motion primitive'lerini ekle |
 | Lenis | Smooth scroll referansı | Varsayılan değil; erişilebilirlik ve performans testinden sonra opsiyonel |
+
+## Dahili rota doğrulaması
+
+İlk testte R3F `useFrame` hook'u Canvas dışındaki wrapper içinde çağrıldığı için dahili 3D rota hata veriyordu. `RouteObjectScene` ve `ProductScene` ayrıştırılarak hook'lar Canvas ağacının içine taşındı. Yeniden testte `/templates/prism-landing` rotası başarıyla açıldı; Canvas, ürün geometrisi, orbit halkası ve geri dönüş/başlangıç promptu aksiyonları görünür durumda.

@@ -6,10 +6,14 @@ import type { Mesh } from "three";
 
 type Template = { name: string; kind: string; number: string; accent: string; layout: string; description: string; components: string[] };
 
-function ProductCanvas({ accent, step }: { accent: string; step: number }) {
+function ProductScene({ step }: { step: number }) {
   const mesh = useRef<Mesh>(null);
   useFrame((_, delta) => { if (mesh.current) { mesh.current.rotation.x += delta * 0.22; mesh.current.rotation.y += delta * (0.42 + step * 0.08); mesh.current.position.y = Math.sin(Date.now() * 0.001) * 0.08; } });
-  return <Canvas camera={{ position: [0, 0, 3.5], fov: 42 }} dpr={[1, 1.2]} gl={{ antialias: false }}><ambientLight intensity={1.8} /><pointLight position={[2, 2, 3]} color={accent} intensity={10} /><mesh ref={mesh} scale={1 + step * 0.08}><boxGeometry args={[1.05, 1.05, 1.05]} /><meshStandardMaterial color="#e6e2d6" metalness={0.82} roughness={0.18} /></mesh><mesh rotation={[0.4, 0.2, 0]} scale={1.34 + step * 0.06}><torusGeometry args={[0.95, 0.025, 12, 64]} /><meshBasicMaterial color="#F05A3C" /></mesh></Canvas>;
+  return <><mesh ref={mesh} scale={1 + step * 0.08}><boxGeometry args={[1.05, 1.05, 1.05]} /><meshStandardMaterial color="#e6e2d6" metalness={0.82} roughness={0.18} /></mesh><mesh rotation={[0.4, 0.2, 0]} scale={1.34 + step * 0.06}><torusGeometry args={[0.95, 0.025, 12, 64]} /><meshBasicMaterial color="#F05A3C" /></mesh></>;
+}
+
+function ProductCanvas({ accent, step }: { accent: string; step: number }) {
+  return <Canvas camera={{ position: [0, 0, 3.5], fov: 42 }} dpr={[1, 1.2]} gl={{ antialias: false }}><ambientLight intensity={1.8} /><pointLight position={[2, 2, 3]} color={accent} intensity={10} /><ProductScene step={step} /></Canvas>;
 }
 
 export default function TemplatePreviewModal({ template, onClose }: { template: Template | null; onClose: () => void }) {

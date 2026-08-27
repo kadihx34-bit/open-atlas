@@ -82,3 +82,14 @@
 - [x] 3D Library'de her sahne için reset, pointer, reduced-motion ve mobil performans durumlarını doğrula.
 - [x] TypeScript, production build, dahili tıklama akışları ve mobil ekranları test et.
 - [x] Tam güncelleme için checkpoint oluştur.
+
+## Sonraki MVP adımları
+
+- [x] 12 site taslağı için gerçek dahili URL rotaları ve ortak showcase kabuğu oluştur.
+- [x] Site seçicide route, geri dönüş ve aktif taslak durumlarını bağla.
+- [x] Component Explorer'a HTML/CSS, React/Tailwind ve Vue/Tailwind kod sekmeleri ekle.
+- [x] Kod sekmelerinde kopyalama ve lisans/attribution bilgisini koru.
+- [x] 3D ürün hikâyesinde scroll ilerlemesine bağlı kamera, ölçek, ışık ve içerik adımları oluştur.
+- [x] GLB kullanımı için güvenli fallback ve mobil kalite profilini ekle.
+- [x] 12 rota, kod sekmeleri ve 3D story akışını test et.
+- [x] Güncel sürüm için checkpoint oluştur.

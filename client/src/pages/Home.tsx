@@ -6,6 +6,7 @@ import type uiverseRegistryType from "../data/uiverse-registry.json";
 import UIPlayground from "../components/UIPlayground";
 import TemplatePreviewModal from "../components/TemplatePreviewModal";
 import ComponentExplorer from "../components/ComponentExplorer";
+import { useLocation } from "wouter";
 import ThreeGallery from "../components/ThreeGallery";
 
 const ThreeShowcase = lazy(() => import("../components/ThreeShowcase"));
@@ -63,6 +64,7 @@ function MiniWireframe({ accent, variant }: { accent: string; variant: number })
 }
 
 export default function Home() {
+  const [, navigate] = useLocation();
   const [query, setQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("ALL");
   const [saved, setSaved] = useState<string[]>([]);
@@ -123,7 +125,7 @@ export default function Home() {
 
       <section className="split-feature" id="systems"><div className="route-badge">03 / SYSTEMS <span>◈</span></div><div className="feature-art"><img src="/manus-storage/atlas-signal_c663787d.jpg" alt="Katmanlı 3D tasarım sistemi objeleri" /><div className="feature-label">SYSTEM<br /><b>STACK / 04</b></div></div><div className="feature-copy"><span className="section-kicker">03 / DESIGN SYSTEMS</span><h2>Bir parçadan<br /><em>bir düzene.</em></h2><p>İyi bir bileşen tek başına güzel görünmez; aynı dili konuşan bir sistem içinde hız kazandırır. Atlas, ilhamı kullanım bağlamıyla birlikte gösterir.</p><div className="feature-links"><a href="https://primer.style/" target="_blank" rel="noreferrer"><Github size={17} /> Primer <ArrowUpRight size={14} /></a><a href="https://ui.shadcn.com/" target="_blank" rel="noreferrer"><Layers3 size={17} /> shadcn/ui <ArrowUpRight size={14} /></a><a href="https://www.figma.com/community/ui-kits" target="_blank" rel="noreferrer"><Figma size={17} /> Figma kits <ArrowUpRight size={14} /></a></div></div></section>
 
-      <section className="section-block template-section" id="templates"><div className="route-line dark"><span>04</span><i></i><b>STARTING POINTS</b></div><div className="section-head"><div><span className="section-kicker">04 / STARTING POINTS</span><h2>İlk ekranı<br /><em>buradan kur.</em></h2></div><span className="section-note">WIREFRAMES / 2026 · 12 ROUTES</span></div><div className="template-grid">{templates.map((template, index) => <article className="template-card" key={template.name}><div className="template-visual"><MiniWireframe accent={template.accent} variant={(index % 3) + 1} /><span>{template.number}</span></div><div className="template-info"><div><span className="card-type">{template.kind}</span><h3>{template.name}</h3></div><span className="template-layout">{template.layout}</span></div><button onClick={() => setSelectedTemplate(template)}>EXPLORE <ArrowUpRight size={14} /></button></article>)}</div></section>
+      <section className="section-block template-section" id="templates"><div className="route-line dark"><span>04</span><i></i><b>STARTING POINTS</b></div><div className="section-head"><div><span className="section-kicker">04 / STARTING POINTS</span><h2>İlk ekranı<br /><em>buradan kur.</em></h2></div><span className="section-note">WIREFRAMES / 2026 · 12 ROUTES</span></div><div className="template-grid">{templates.map((template, index) => <article className="template-card" key={template.name}><div className="template-visual"><MiniWireframe accent={template.accent} variant={(index % 3) + 1} /><span>{template.number}</span></div><div className="template-info"><div><span className="card-type">{template.kind}</span><h3>{template.name}</h3></div><span className="template-layout">{template.layout}</span></div><button onClick={() => navigate(`/templates/${template.name.toLowerCase().replaceAll(" ", "-")}`)}>EXPLORE <ArrowUpRight size={14} /></button></article>)}</div></section>
 
       <ComponentExplorer />
       <ThreeGallery />
