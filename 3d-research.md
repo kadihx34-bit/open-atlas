@@ -39,3 +39,9 @@ React Three Fiber resmi GitHub deposu, Three.js'i React içinde deklaratif, yeni
 ## Dahili rota doğrulaması
 
 İlk testte R3F `useFrame` hook'u Canvas dışındaki wrapper içinde çağrıldığı için dahili 3D rota hata veriyordu. `RouteObjectScene` ve `ProductScene` ayrıştırılarak hook'lar Canvas ağacının içine taşındı. Yeniden testte `/templates/prism-landing` rotası başarıyla açıldı; Canvas, ürün geometrisi, orbit halkası ve geri dönüş/başlangıç promptu aksiyonları görünür durumda.
+
+## 2026-08-27 route verification
+
+All 12 internal template routes opened through the live preview. The route-specific theme contract is visible in the screenshots: Data Bloom uses warm analytics tokens, Deep Orbit uses a deep cobalt spatial surface, Prism Landing uses vermilion generative lighting, and Aperture Object shows the three-step Material / Detail / Use rail. Shared route shell remains intact while typography, surfaces, accents, radius and shadow tokens vary by slug.
+
+The GLB Asset Lab is visible on the main page with local-first file input, 50 MB guard, Canvas fallback, red clickable hotspot markers, hotspot list, and protected persistence mutation. Registry stats/search are verified via /api/mcp/registry endpoints and the focused registry unit test passes. Full Vitest suite is memory-constrained in the sandbox; targeted registry test passes.

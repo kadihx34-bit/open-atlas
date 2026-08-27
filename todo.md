@@ -93,3 +93,15 @@
 - [x] GLB kullanımı için güvenli fallback ve mobil kalite profilini ekle.
 - [x] 12 rota, kod sekmeleri ve 3D story akışını test et.
 - [x] Güncel sürüm için checkpoint oluştur.
+
+## GLB, hotspot, 12 tema ve backend registry
+
+- [x] Full-stack özellik yükseltmesini tamamla ve mevcut frontend uyumluluğunu koru.
+- [x] GLB dosyası yükleme ve güvenli depolama akışını ekle.
+- [x] GLB önizlemesine hotspot veri modeli ve tıklanabilir açıklama işaretleri ekle.
+- [x] 12 template rotasının her birine ayrı tema tokenları ve bileşen varyasyonları uygula.
+- [x] Registry için list/search/get-category backend prosedürleri oluştur.
+- [x] MCP uyumlu registry manifest ve endpoint sözleşmesini backend ile bağla.
+- [x] İstek doğrulama, erişim kontrolü ve hata durumlarını ekle.
+- [x] GLB, hotspot, 12 rota ve registry endpoint akışlarını test et.
+- [x] Güncel full-stack sürümü checkpoint ile kaydet.

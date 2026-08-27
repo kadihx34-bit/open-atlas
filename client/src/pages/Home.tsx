@@ -1,5 +1,6 @@
 // STYLE: Signal Atlas — editorial archive with fixed navigation, asymmetrical cards, blueprint coordinates, cobalt/vemilion signal accents.
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { toast } from "sonner";
 import { ArrowUpRight, Bookmark, Check, ChevronRight, Code2, Copy, ExternalLink, Figma, Github, Grid2X2, Layers3, Menu, Orbit, Search, Sparkles, X } from "lucide-react";
 import type uiverseRegistryType from "../data/uiverse-registry.json";
@@ -8,6 +9,7 @@ import TemplatePreviewModal from "../components/TemplatePreviewModal";
 import ComponentExplorer from "../components/ComponentExplorer";
 import { useLocation } from "wouter";
 import ThreeGallery from "../components/ThreeGallery";
+import GlbAssetLab from "../components/GlbAssetLab";
 
 const ThreeShowcase = lazy(() => import("../components/ThreeShowcase"));
 
@@ -64,6 +66,13 @@ function MiniWireframe({ accent, variant }: { accent: string; variant: number })
 }
 
 export default function Home() {
+  // The useAuth hook provides authentication state.
+  // To implement login/logout, call logout(), or start login from an event
+  // handler: onClick={() => startLogin()} (imported from "@/const"). Never call
+  // startLogin() during render (no href={startLogin()}) — it mints a one-time
+  // nonce cookie and must run only at the moment of navigation.
+  let { user, loading, error, isAuthenticated, logout } = useAuth();
+
   const [, navigate] = useLocation();
   const [query, setQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("ALL");
@@ -129,6 +138,7 @@ export default function Home() {
 
       <ComponentExplorer />
       <ThreeGallery />
+      <GlbAssetLab />
       <UIPlayground />
       <Suspense fallback={<section className="three-showcase three-loading"><div><span className="section-kicker">05 / MOTION LAB</span><p>3D sahne hazırlanıyor / CSS fallback aktif...</p></div></section>}><ThreeShowcase /></Suspense>
       <TemplatePreviewModal template={selectedTemplate} onClose={() => setSelectedTemplate(null)} />
