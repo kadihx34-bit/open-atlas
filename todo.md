@@ -152,7 +152,8 @@
 - [x] Local Component Library bölümünü 18 primitive ile sınırlı tutup 3.802 registry’ye açık geçiş ekle.
 - [x] MCP endpoint kullanımını dokümante et ve registry Explorer’dan MCP-ready JSON/manifest erişimini görünür kıl.
 - [x] GitHub aktarımı için README, MCP kullanım dokümanı, lisans/attribution ve güvenli env yönergelerini hazırla.
-- [ ] Registry Explorer, MCP yüzeyi ve mevcut rotaları test edip checkpoint oluştur.
-- [ ] Uiverse Registry Explorer’a gerçek ALL / MIT lisans filtresi ekle ve arama+kategori ile birlikte çalıştır.
-- [ ] Local Component Library başlığına veya footer’ına 3.802 Uiverse Registry Explorer’a giden görünür CTA ekle.
-- [ ] Bu düzeltmelerden sonra Registry Explorer akışını yeniden test edip checkpoint oluştur.
+- [x] Registry Explorer, MCP yüzeyi ve mevcut rotaları test edip checkpoint oluştur.
+- [x] Uiverse Registry Explorer’a gerçek ALL / MIT lisans filtresi ekle ve arama+kategori ile birlikte çalıştır.
+- [x] Local Component Library başlığına veya footer’ına 3.802 Uiverse Registry Explorer’a giden görünür CTA ekle.
+- [x] Bu düzeltmelerden sonra Registry Explorer akışını yeniden test edip checkpoint oluştur.
+- [ ] GitHub hesabında CreateRepository yetkisi sağlandıktan sonra private `open-design-atlas` repository’si oluşturup push et veya Management UI GitHub Export akışını tamamla.
