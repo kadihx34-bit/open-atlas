@@ -10,6 +10,7 @@ import ComponentExplorer from "../components/ComponentExplorer";
 import { useLocation } from "wouter";
 import ThreeGallery from "../components/ThreeGallery";
 import GlbAssetLab from "../components/GlbAssetLab";
+import UiverseRegistryExplorer from "../components/UiverseRegistryExplorer";
 
 const ThreeShowcase = lazy(() => import("../components/ThreeShowcase"));
 
@@ -105,7 +106,7 @@ export default function Home() {
       <nav className="side-nav" aria-label="Ana navigasyon">
         <a className="active" href="#discover"><span>01</span>Discover <ChevronRight size={14} /></a>
         <a href="#prompts"><span>02</span>Prompts</a>
-        <a href="#library-explorer"><span>03</span>Libraries / Explorer</a>
+        <a href="#library-explorer"><span>03</span>Libraries / Explorer</a><a href="#uiverse-registry"><span>03A</span>Uiverse Registry</a>
         <a href="#templates"><span>04</span>Templates</a>
         <a href="#systems"><span>05</span>Systems</a>
         <a href="#playground"><span>06</span>UI Playground</a>
@@ -124,7 +125,7 @@ export default function Home() {
         <div className="hero-art"><img src="/manus-storage/atlas-hero_86b5734a.jpg" alt="Kobalt ve vermilyon 3D atlas kompozisyonu" /><div className="hero-stamp">FIELD<br /><b>NOTES</b><br /><small>DESIGN / 26</small></div><div className="hero-coord">41° 01' 54.2" N<br />28° 58' 33.4" E</div></div>
       </section>
 
-      <section className="section-block source-section" id="library"><div className="section-head"><div><span className="section-kicker">01 / LIBRARY INDEX</span><h2>Kütüphaneleri<br /><em>burada gör.</em></h2></div><a className="text-link" href="#library-explorer">Tüm bileşenleri gör <ArrowUpRight size={15} /></a></div><div className="library-scope"><span className="scope-pin">i</span><p><b>Bu bölüm bir kaynak kataloğudur.</b> Diğer sitelerdeki tüm bileşenleri içeri aktarmıyoruz; ücretsiz kütüphaneleri kategori, teknoloji ve kullanım amacıyla küratörlü şekilde listeliyor, seni orijinal demoya yönlendiriyoruz.</p><div className="scope-metrics"><strong>{sources.length} KÜTÜPHANE</strong>{libraryCategoryCounts.map((item) => <span key={item.label}><b>{item.count}</b> {item.label}</span>)}</div></div><div className="filter-row">{filters.map((filter) => <button key={filter} className={activeFilter === filter ? "selected" : ""} onClick={() => setActiveFilter(filter)}>{filter}</button>)}</div><div className="source-grid">{filteredSources.map((item, index) => { const Icon = item.icon; return <article className={`source-card ${item.color}`} key={item.name}><div className="card-top"><span className="card-number">0{index + 1} / ROUTE STOP</span><button className={saved.includes(item.name) ? "is-saved" : ""} onClick={() => toggleSave(item.name)} aria-label={`Kaydet: ${item.name}`}><Bookmark size={16} fill={saved.includes(item.name) ? "currentColor" : "none"} /></button></div><div className="source-icon"><Icon size={24} strokeWidth={1.5} /></div><span className="card-type">{item.type}</span><div className="source-name">{item.name}</div><h3>{item.title}</h3><p>{item.desc}</p><div className="card-foot"><span>{item.tag}</span><a href={item.name === "Uiverse" ? "#library-explorer" : item.href} target={item.name === "Uiverse" ? undefined : "_blank"} rel="noreferrer" aria-label={`${item.name} kaynağını aç`}><ExternalLink size={15} /></a></div></article>})}</div></section>
+      <section className="section-block source-section" id="library"><div className="section-head"><div><span className="section-kicker">01 / LIBRARY INDEX</span><h2>Kütüphaneleri<br /><em>burada gör.</em></h2></div><a className="text-link" href="#library-explorer">Tüm bileşenleri gör <ArrowUpRight size={15} /></a></div><div className="library-scope"><span className="scope-pin">i</span><p><b>Bu bölüm bir kaynak kataloğudur.</b> Diğer sitelerdeki tüm bileşenleri içeri aktarmıyoruz; ücretsiz kütüphaneleri kategori, teknoloji ve kullanım amacıyla küratörlü şekilde listeliyor, seni orijinal demoya yönlendiriyoruz.</p><div className="scope-metrics"><strong>{sources.length} KÜTÜPHANE</strong>{libraryCategoryCounts.map((item) => <span key={item.label}><b>{item.count}</b> {item.label}</span>)}</div></div><div className="filter-row">{filters.map((filter) => <button key={filter} className={activeFilter === filter ? "selected" : ""} onClick={() => setActiveFilter(filter)}>{filter}</button>)}</div><div className="source-grid">{filteredSources.map((item, index) => { const Icon = item.icon; return <article className={`source-card ${item.color}`} key={item.name}><div className="card-top"><span className="card-number">0{index + 1} / ROUTE STOP</span><button className={saved.includes(item.name) ? "is-saved" : ""} onClick={() => toggleSave(item.name)} aria-label={`Kaydet: ${item.name}`}><Bookmark size={16} fill={saved.includes(item.name) ? "currentColor" : "none"} /></button></div><div className="source-icon"><Icon size={24} strokeWidth={1.5} /></div><span className="card-type">{item.type}</span><div className="source-name">{item.name}</div><h3>{item.title}</h3><p>{item.desc}</p><div className="card-foot"><span>{item.tag}</span><a href={item.name === "Uiverse" ? "#uiverse-registry" : item.href} target={item.name === "Uiverse" ? undefined : "_blank"} rel="noreferrer" aria-label={`${item.name} kaynağını aç`}><ExternalLink size={15} /></a></div></article>})}</div></section>
 
       <ComponentExplorer sectionId="library-explorer" kicker="02 / LOCAL COMPONENT LIBRARY" title="Tüm yüzeyler." emphasis="tek panelde." />
 
@@ -139,6 +140,7 @@ export default function Home() {
       <section className="section-block template-section" id="templates"><div className="route-line dark"><span>04</span><i></i><b>STARTING POINTS</b></div><div className="section-head"><div><span className="section-kicker">04 / STARTING POINTS</span><h2>İlk ekranı<br /><em>buradan kur.</em></h2></div><span className="section-note">WIREFRAMES / 2026 · 12 ROUTES</span></div><div className="template-grid">{templates.map((template, index) => <article className="template-card" key={template.name}><div className="template-visual"><MiniWireframe accent={template.accent} variant={(index % 3) + 1} /><span>{template.number}</span></div><div className="template-info"><div><span className="card-type">{template.kind}</span><h3>{template.name}</h3></div><span className="template-layout">{template.layout}</span></div><button onClick={() => navigate(`/templates/${template.name.toLowerCase().replaceAll(" ", "-")}`)}>EXPLORE <ArrowUpRight size={14} /></button></article>)}</div></section>
 
       <ComponentExplorer />
+      <UiverseRegistryExplorer />
       <ThreeGallery />
       <GlbAssetLab />
       <UIPlayground />

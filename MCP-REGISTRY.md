@@ -2,9 +2,9 @@
 
 ## Mevcut durum
 
-Open Design Atlas'ın statik MVP'si, Uiverse Galaxy deposundan import edilen **3.802 MIT lisanslı bileşeni** `client/src/data/uiverse-registry.json` içinde machine-readable biçimde taşır. Arayüz bu registry'yi lazy-load eder; bileşenleri kategori ve metin aramasıyla süzer, güvenli sandbox iframe içinde önizler ve seçilen bileşenin HTML/CSS kodunu panoya kopyalar.
+Open Design Atlas, Uiverse Galaxy deposundan import edilen **3.802 MIT lisanslı bileşeni** `client/src/data/uiverse-registry.json` içinde machine-readable biçimde taşır. Registry lazy-load edilir; `03A / UIVERSE REGISTRY EXPLORER` ekranında arama, kategori filtreleri, kademeli listeleme, sandbox iframe önizlemesi, HTML/CSS kopyalama ve MCP-ready JSON görünür.
 
-Bu proje şu anda bir MCP sunucusu değildir ve sitenin ziyaretçisinin kişisel MCP araçlarına doğrudan erişemez. MCP bağlantısı için sonraki teknik adım, bu registry dosyasını okuyan küçük bir backend veya ayrı bir remote MCP server expose etmektir. Statik MVP'de bunun yerine MCP'ye uygun bir veri sözleşmesi hazırlanmıştır.
+Backend tarafında `/api/mcp` üzerinde gerçek **MCP Streamable HTTP transport** aktiftir. Ayrıca tarayıcı ve basit script kullanımı için read-only GET rotaları yayınlanır.
 
 ## Bileşen kaydı
 
@@ -23,19 +23,44 @@ Her kayıt aşağıdaki alanları taşır:
 | `code.html` | string | Sandbox önizlemesinde ve kopyalama akışında kullanılan markup. |
 | `code.css` | string | Sandbox önizlemesinde ve kopyalama akışında kullanılan stil. |
 
-## Önerilen MCP araçları
+## Streamable HTTP MCP
 
-İleride backend/MCP katmanı eklendiğinde önerilen salt-okunur araçlar `search_components(query, category, limit)`, `get_component(id)`, `list_categories()` ve `get_registry_stats()` olarak tasarlanmalıdır. `get_component` sonucu lisans ve attribution alanlarını kodla birlikte döndürmeli; lisans bilgisi olmayan kayıtlar kopyalanabilir kod olarak yayımlanmamalıdır.
+MCP istemcisi `POST /api/mcp` ile initialize isteği göndererek oturum açar. Yanıtın `Mcp-Session-Id` değerini sonraki isteklerde aynı header ile taşımak gerekir. Sunucu `tools/list` ve `tools/call` yöntemlerini destekler.
+
+| Araç | Girdi | Amaç |
+|---|---|---|
+| `search_components` | `query?`, `category?`, `limit?` | Registry içinde arama yapar; limit 1–100 arasındadır. |
+| `get_component` | `id` | ID veya slug ile tek kayıt döndürür. |
+| `list_categories` | yok | Registry’deki kategori listesini döndürür. |
+| `get_registry_stats` | yok | Toplam kayıt, kaynak ve lisans metadatasını döndürür. |
+
+Örnek MCP initialize gövdesi:
+
+```json
+{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{},"clientInfo":{"name":"atlas-client","version":"1.0.0"}}}
+```
+
+## Read-only GET rotaları
+
+| Rota | Davranış |
+|---|---|
+| `GET /api/mcp/registry?query=&category=&limit=` | `search_components` eşdeğeri JSON yanıtı. |
+| `GET /api/mcp/registry/categories` | `list_categories` eşdeğeri JSON yanıtı. |
+| `GET /api/mcp/registry/stats` | `get_registry_stats` eşdeğeri JSON yanıtı. |
+| `GET /api/mcp/registry/:id-or-slug` | `get_component` eşdeğeri JSON yanıtı. |
+
+Tüm hızlı yanıtlar `protocol: open-design-atlas-mcp/v1` alanını taşır. Kayıt bulunamazsa tekil kayıt rotası HTTP 404 döndürür. Streamable MCP oturumu bulunmayan tool çağrıları güvenli şekilde HTTP 400 ile reddedilir.
 
 ## Lisans politikası
 
-Uiverse Galaxy deposu README'sinde arşivin MIT lisanslı olduğu ve bileşenlerin Uiverse platformundan otomatik kürate edilerek yüklendiği belirtilir. Bu proje kayıtlarda `MIT` ve `Uiverse.io community creator` attribution alanlarını korur. Başka bir kaynağın içeriği, lisansı ve yeniden dağıtım izni ayrı ayrı doğrulanmadan registry'ye kod olarak eklenmemelidir. Lisans belirsizse yalnızca kaynak kartı ve orijinal bağlantı eklenir.
+Uiverse Galaxy deposunun README ve lisans bilgileri arşivin MIT kapsamında olduğunu belirtir. Bu proje kayıtlarda `MIT` ve `Uiverse.io community creator` attribution alanlarını korur. Başka bir kaynağın içeriği, lisansı ve yeniden dağıtım izni ayrı ayrı doğrulanmadan registry’ye kod olarak eklenmemelidir. Lisans belirsizse yalnızca kaynak kartı ve orijinal bağlantı eklenir.
 
-## Özel kullanım notu
+## Özel kullanım ve güvenlik
 
-Kullanıcı bu atlası kişisel kullanım için çalıştırabilir; ancak “özel kullanım” üçüncü taraf lisanslarını otomatik olarak geçersiz kılmaz. Bu nedenle her import çalıştırmasında kaynak URL'si, lisans ve attribution korunmalı; registry'nin public deploy edilip edilmeyeceği Management UI görünürlük ayarından ayrıca belirlenmelidir.
+Atlas kişisel veya kapalı bir çalışma alanı olarak çalıştırılabilir; ancak “özel kullanım” üçüncü taraf lisanslarını geçersiz kılmaz. MCP endpoint’i registry verisini read-only olarak sunar ve kullanıcı yüklemelerini yayınlamaz. Production ortamında endpoint’i erişim katmanı, rate limiting ve uygun origin politikasıyla korumak önerilir. Environment değişkenleri ve kullanıcıya ait gizli veriler repository’ye commit edilmemelidir.
 
 ## Kaynaklar
 
 [1]: https://github.com/uiverse-io/galaxy "Uiverse Galaxy — MIT licensed component archive"
 [2]: https://uiverse.io/ "Uiverse — original browsing platform"
+[3]: https://modelcontextprotocol.io/specification/2025-03-26/basic/transports "Model Context Protocol — Streamable HTTP transport"

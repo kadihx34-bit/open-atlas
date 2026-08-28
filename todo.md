@@ -143,3 +143,16 @@
 - [x] Refactor the particle preset explicitly around low-density BufferGeometry or a dedicated safe mesh fallback.
 - [x] Add automated 3D Library preset tests for selection and fallback behavior, then run them.
 - [x] Save a new checkpoint after these stabilization fixes.
+
+## Follow-up: Uiverse registry Explorer ve GitHub/MCP aktarımı
+
+- [x] 3.802 Uiverse bileşenini 18 primitive demosundan ayrı bir Registry Explorer menüsünde göster.
+- [x] Registry Explorer’da arama, kategori, lisans filtreleri, kademeli listeleme ve dahili detay paneli ekle.
+- [x] Uiverse Galaxy başlığındaki 3.802 bileşen / MIT / HTML + CSS / MCP-READY JSON bilgisini gerçek registry ekranına taşı.
+- [x] Local Component Library bölümünü 18 primitive ile sınırlı tutup 3.802 registry’ye açık geçiş ekle.
+- [x] MCP endpoint kullanımını dokümante et ve registry Explorer’dan MCP-ready JSON/manifest erişimini görünür kıl.
+- [x] GitHub aktarımı için README, MCP kullanım dokümanı, lisans/attribution ve güvenli env yönergelerini hazırla.
+- [ ] Registry Explorer, MCP yüzeyi ve mevcut rotaları test edip checkpoint oluştur.
+- [ ] Uiverse Registry Explorer’a gerçek ALL / MIT lisans filtresi ekle ve arama+kategori ile birlikte çalıştır.
+- [ ] Local Component Library başlığına veya footer’ına 3.802 Uiverse Registry Explorer’a giden görünür CTA ekle.
+- [ ] Bu düzeltmelerden sonra Registry Explorer akışını yeniden test edip checkpoint oluştur.
