@@ -105,3 +105,41 @@
 - [x] İstek doğrulama, erişim kontrolü ve hata durumlarını ekle.
 - [x] GLB, hotspot, 12 rota ve registry endpoint akışlarını test et.
 - [x] Güncel full-stack sürümü checkpoint ile kaydet.
+
+## Mesh3D, gerçek upload ve MCP transport turu
+
+- [x] mesh3d.gallery ana sayfasını ve erişilebilir model/kaynak sayfalarını araştır; lisans ve yeniden kullanım koşullarını not et.
+- [x] İzin verilen Mesh3D kaynağını veya kaynağa dayalı kendi üretim varlığını 3D Library'ye attribution ile ekle.
+- [ ] GLB upload akışını oturumlu kullanıcıyla gerçek dosya, başarılı kayıt ve hotspot doğrulamasıyla test et.
+- [x] Registry için MCP JSON-RPC veya Streamable HTTP transport katmanı oluştur; tools/list ve tools/call desteği ekle.
+- [x] MCP transport için search_components, get_component, list_categories ve get_registry_stats araçlarını bağla.
+- [x] 12 template'in içerik hiyerarşisini, hero görselini, UI varyantlarını ve rota bazlı metinlerini derinleştir.
+- [x] Yeni Mesh3D/GLB kaynağını 3D landing veya ürün story rotasında gerçek kullanım olarak göster.
+- [ ] E2E upload, hotspot, MCP transport ve tüm template rotalarını doğrula.
+- [ ] Yeni sürüm için checkpoint oluştur.
+
+## 3D Library preset stabilizasyonu
+
+- [x] Particle preset hatasını gerçek browser console stack trace ile izole et.
+- [x] Diğer hata veren 3D presetleri aynı akışta sınıflandır ve ortak hata sınırını belirle.
+- [x] Her preset için güvenli Canvas içi scene wrapper, error boundary ve CSS fallback ekle.
+- [x] Particle sahnesini düşük yoğunluklu BufferGeometry veya güvenli mesh fallback ile yeniden kur.
+- [x] 10 sahnenin tamamını seçim akışıyla doğrula; hata verenleri kullanıcıya boş Canvas olarak bırakma.
+- [x] 3D Library preset testlerini yaz ve TypeScript/build kontrolü yap.
+- [x] Stabilizasyon sonrası checkpoint oluştur.
+
+## Girişsiz GLB fallback
+
+- [x] IndexedDB tabanlı local-first GLB kaydı ekle.
+- [x] Kaydedilmiş GLB ve hotspotları sayfa açılışında geri yükle.
+- [x] Sunucu kaydını ikincil, isteğe bağlı buton olarak ayır.
+- [x] Görünür dosya seçiciyi ve responsive aksiyon grubunu ekle.
+- [x] TypeScript kontrolü ve Asset Lab görsel doğrulamasını tamamla.
+
+## Follow-up: resolve 3D verification gaps
+
+- [x] Add an allowed or self-authored Mesh3D-derived asset to the actual 3D Library with visible attribution/license.
+- [x] Use the Mesh3D/GLB asset in Prism Landing or Aperture Object and verify the route-level rendering.
+- [x] Refactor the particle preset explicitly around low-density BufferGeometry or a dedicated safe mesh fallback.
+- [x] Add automated 3D Library preset tests for selection and fallback behavior, then run them.
+- [x] Save a new checkpoint after these stabilization fixes.

@@ -45,3 +45,29 @@ React Three Fiber resmi GitHub deposu, Three.js'i React içinde deklaratif, yeni
 All 12 internal template routes opened through the live preview. The route-specific theme contract is visible in the screenshots: Data Bloom uses warm analytics tokens, Deep Orbit uses a deep cobalt spatial surface, Prism Landing uses vermilion generative lighting, and Aperture Object shows the three-step Material / Detail / Use rail. Shared route shell remains intact while typography, surfaces, accents, radius and shadow tokens vary by slug.
 
 The GLB Asset Lab is visible on the main page with local-first file input, 50 MB guard, Canvas fallback, red clickable hotspot markers, hotspot list, and protected persistence mutation. Registry stats/search are verified via /api/mcp/registry endpoints and the focused registry unit test passes. Full Vitest suite is memory-constrained in the sandbox; targeted registry test passes.
+
+## Particle preset browser check
+
+The live page was opened at the 3D Library section and the Particle Weather button was selected programmatically. The selection succeeded and no new runtime exception appeared in the browser console after the click. A previous console evaluation syntax error came from the test expression itself, not the preset. The stage still needs a stronger visual fallback for environments where WebGL is unavailable.
+
+## 2026-08-27 R3F failure diagnosis
+
+Selecting Particle Weather revealed the concrete runtime failure: `R3F: Cannot set "data-loc". Ensure it is an object before setting "loc"`. The error occurs in React Three Fiber's `applyProps`, indicating the development JSX location attribute is being passed to Three.js intrinsic nodes as if it were a Three property. The fix is to disable the JSX location injection plugin for the R3F build (or otherwise prevent `data-loc` from reaching Canvas children), then reload and retest every preset.
+
+## 2026-08-27 preset retest
+
+After removing the JSX location plugin from Vite and restarting the server, the 3D Library renders normally. The live screenshot shows Blue Orbit Canvas content, all preset cards are present, and selecting Particle Weather succeeds without a new console exception. The prior `data-loc` crash is resolved at the configuration layer rather than masked in the scene component.
+
+## Mesh3D Gallery research
+
+Mesh3D Gallery is a curated showcase of interactive, real-time Three.js experiences rather than a component or model download library. Its homepage exposes Websites, Experiments, Makers, Blog and About navigation, plus a curated feed with experience title, maker, detail page and external visit link. The visible homepage claims 480+ experiences and 230+ makers. No downloadable GLB assets or reuse license for the showcased websites was exposed in the homepage content; therefore the safe integration is a Mesh3D-inspired gallery/curation route with attribution and external visit links, not copying showcased site assets or code.
+
+Reference: https://mesh3d.gallery/
+
+## GLB upload smoke-test note
+
+The official Khronos `Box.glb` sample downloaded successfully (1.7 KB, glTF binary v2). The Asset Lab exposes one file input, but the browser upload helper could not locate it while the input was below the current viewport/section render state. The next test step is to scroll the `#three-lab` section into view, then target the file input and verify local preview before attempting the protected save mutation.
+
+## Upload automation follow-up
+
+The file control is now visibly rendered in Asset Lab and the Khronos Box.glb is ready, but the sandbox browser upload helper still cannot target the React file input. The UI is visible and the local preview path is implemented; a manual browser takeover is required for the final authenticated file-selection and protected save mutation test.
