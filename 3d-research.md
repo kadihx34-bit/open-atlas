@@ -71,3 +71,9 @@ The official Khronos `Box.glb` sample downloaded successfully (1.7 KB, glTF bina
 ## Upload automation follow-up
 
 The file control is now visibly rendered in Asset Lab and the Khronos Box.glb is ready, but the sandbox browser upload helper still cannot target the React file input. The UI is visible and the local preview path is implemented; a manual browser takeover is required for the final authenticated file-selection and protected save mutation test.
+
+## Local-first GLB verification
+
+The browser-side smoke test successfully fetched the Khronos Box.glb sample (1,664 bytes), assigned it to the visible Asset Lab file input via DataTransfer, dispatched the real change event, and triggered the `TARAYICIDA SAKLA` action. This validates the no-login local-first path up to IndexedDB persistence; protected server persistence remains a separate account-gated action.
+
+The no-login Asset Lab verification now shows `Box.glb` after page reload with a local save timestamp and the IndexedDB notice. The Canvas preview is visible and the hotspot list contains Material, Detail, and Use entries. A browser-side click on the first hotspot completed without a runtime exception; the stage remains interactive and the hotspot instruction stays visible.

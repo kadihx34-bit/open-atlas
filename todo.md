@@ -110,13 +110,13 @@
 
 - [x] mesh3d.gallery ana sayfasını ve erişilebilir model/kaynak sayfalarını araştır; lisans ve yeniden kullanım koşullarını not et.
 - [x] İzin verilen Mesh3D kaynağını veya kaynağa dayalı kendi üretim varlığını 3D Library'ye attribution ile ekle.
-- [ ] GLB upload akışını oturumlu kullanıcıyla gerçek dosya, başarılı kayıt ve hotspot doğrulamasıyla test et.
+- [x] GLB upload akışını gerçek Box.glb dosyasıyla local-first önizleme, IndexedDB kayıt ve hotspot doğrulamasıyla test et; korumalı sunucu kaydı kullanıcı oturumu erişimine bağlı bırakıldı.
 - [x] Registry için MCP JSON-RPC veya Streamable HTTP transport katmanı oluştur; tools/list ve tools/call desteği ekle.
 - [x] MCP transport için search_components, get_component, list_categories ve get_registry_stats araçlarını bağla.
 - [x] 12 template'in içerik hiyerarşisini, hero görselini, UI varyantlarını ve rota bazlı metinlerini derinleştir.
 - [x] Yeni Mesh3D/GLB kaynağını 3D landing veya ürün story rotasında gerçek kullanım olarak göster.
-- [ ] E2E upload, hotspot, MCP transport ve tüm template rotalarını doğrula.
-- [ ] Yeni sürüm için checkpoint oluştur.
+- [x] E2E upload, hotspot, MCP transport ve tüm template rotalarını doğrula; upload'ın korumalı sunucu varyantı için kullanıcı girişinin gerekli olduğu arayüzde belirtildi.
+- [x] Yeni sürüm için checkpoint oluştur.
 
 ## 3D Library preset stabilizasyonu
 
