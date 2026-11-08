@@ -14,7 +14,7 @@ export const odaPatchSchema = z.object({
   id: z.string().min(1).max(100),
   intent: z.string().min(1).max(240),
   operations: z.array(odaPatchOperationSchema).min(1).max(40),
-  source: z.literal("mock-ai"),
+  source: z.enum(["mock-ai", "built-in-llm"]),
 });
 export type ODAPatch = z.infer<typeof odaPatchSchema>;
 
@@ -32,10 +32,14 @@ function assertSafePath(path: string[]) {
   if (path[0] === "document" && path[1] && !allowedDocumentKeys.has(path[1])) throw new Error(`Document patch key is not allowed: ${path[1]}`);
   if (path[0] === "objects") {
     if (path.length < 3 || !/^\d+$/.test(path[1] ?? "")) throw new Error(`Object patch path must target an indexed editable field`);
-    if (!allowedObjectKeys.has(path[2])) throw new Error(`Object patch key is not allowed: ${path[2]}`);
-    if (path[2] === "style") {
-      if (path.length !== 4 || !allowedStyleKeys.has(path[3])) throw new Error(`Object style patch key is not allowed: ${path[3]}`);
-    } else if (path.length !== 3) {
+    const objectKey = path[2] === "children" ? path[4] : path[2];
+    const isChildPath = path[2] === "children";
+    if (isChildPath && (path.length < 5 || !/^\d+$/.test(path[3] ?? ""))) throw new Error(`Nested object patch path must target an indexed child`);
+    if (!objectKey || !allowedObjectKeys.has(objectKey)) throw new Error(`Object patch key is not allowed: ${objectKey}`);
+    const styleIndex = isChildPath ? 5 : 3;
+    if (objectKey === "style") {
+      if (path.length !== styleIndex + 1 || !allowedStyleKeys.has(path[styleIndex])) throw new Error(`Object style patch key is not allowed: ${path[styleIndex]}`);
+    } else if (path.length !== styleIndex) {
       throw new Error(`Object patch path is too deep: ${path.join(".")}`);
     }
   }
@@ -64,7 +68,7 @@ export function applyODAPatch(design: ODADesign, input: unknown): { design: ODAD
     if (operation.op === "remove") { removeAt(next, operation.path); inverseOperations.unshift({ op: "add", path: operation.path, value: previous }); }
   });
   const validated = odaDesignSchema.parse(next);
-  return { design: validated, inverse: { schemaVersion: "oda.design/1.0", patchVersion: "oda.patch/1.0", id: `${patch.id}-inverse`, intent: `Undo: ${patch.intent}`, operations: inverseOperations, source: "mock-ai" } };
+  return { design: validated, inverse: { schemaVersion: "oda.design/1.0", patchVersion: "oda.patch/1.0", id: `${patch.id}-inverse`, intent: `Undo: ${patch.intent}`, operations: inverseOperations, source: patch.source } };
 }
 
 export function createMockAIPatch(design: ODADesign): ODAPatch {

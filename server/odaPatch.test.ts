@@ -20,6 +20,20 @@ describe("ODA brand kit and AI patch contract", () => {
     expect(result.undone.objects[0]).toEqual(starterDesign.objects[0]);
   });
 
+  it("preserves the built-in LLM source through a validated inverse patch", () => {
+    const patch = {
+      schemaVersion: "oda.design/1.0" as const,
+      patchVersion: "oda.patch/1.0" as const,
+      id: "live-lunatic-test",
+      intent: "Update editable headline",
+      source: "built-in-llm" as const,
+      operations: [{ op: "replace" as const, path: ["objects", "0", "content"], value: "LUNATIC / LIVE" }],
+    };
+    const result = applyODAPatch(starterDesign, patch);
+    expect(result.inverse.source).toBe("built-in-llm");
+    expect(applyODAPatch(result.design, result.inverse).design.objects[0]).toEqual(starterDesign.objects[0]);
+  });
+
   it("rejects unsafe patch paths and unvalidated values", () => {
     expect(() => validateODAPatch({
       schemaVersion: "oda.design/1.0",
