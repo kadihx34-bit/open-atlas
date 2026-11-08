@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowDownToLine, BadgeCheck, ChevronLeft, Circle, Copy, Frame, Layers3, Minus, Plus, Redo2, Square, Trash2, Type, Undo2 } from "lucide-react";
+import { ArrowDownToLine, BadgeCheck, ChevronLeft, Circle, Copy, Frame, ImagePlus, Layers3, Minus, Plus, Redo2, Replace, RotateCcw, Square, Trash2, Type, Undo2 } from "lucide-react";
 import { toast } from "sonner";
-import { Canvas, Circle as FabricCircle, FabricObject, Group, IText, Line, Rect } from "fabric";
+import { Canvas, Circle as FabricCircle, FabricImage, FabricObject, Group, IText, Line, Rect } from "fabric";
 import {
   ODA_FONT_FAMILIES,
   type ODAObject,
@@ -16,47 +16,17 @@ const STORE_NAME = "drafts";
 const DRAFT_ID = "oda-spike-draft";
 
 type HistoryEntry = { label: string; design: ODADesign };
-type FabricWithOda = FabricObject & { odaId?: string; odaType?: ODAObject["type"] };
-
+type FabricWithOda = FabricObject & { odaId?: string; odaType?: ODAObject["type"]; odaWidth?: number; odaHeight?: number; odaX?: number; odaY?: number; odaCropScale?: number };
 type Props = { onBack?: () => void };
+type GroupObject = Extract<ODAObject, { type: "group" }>;
 
-function cloneDesign(design: ODADesign): ODADesign {
-  return JSON.parse(JSON.stringify(design)) as ODADesign;
-}
+function cloneDesign(design: ODADesign): ODADesign { return JSON.parse(JSON.stringify(design)) as ODADesign; }
+function openDraftDb(): Promise<IDBDatabase> { return new Promise((resolve, reject) => { const request = indexedDB.open(DB_NAME, 1); request.onupgradeneeded = () => request.result.createObjectStore(STORE_NAME); request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error); }); }
+async function saveDraft(design: ODADesign) { const db = await openDraftDb(); await new Promise<void>((resolve, reject) => { const tx = db.transaction(STORE_NAME, "readwrite"); tx.objectStore(STORE_NAME).put(design, DRAFT_ID); tx.oncomplete = () => resolve(); tx.onerror = () => reject(tx.error); }); db.close(); }
+async function loadDraft(): Promise<ODADesign | null> { const db = await openDraftDb(); const result = await new Promise<ODADesign | null>((resolve, reject) => { const request = db.transaction(STORE_NAME, "readonly").objectStore(STORE_NAME).get(DRAFT_ID); request.onsuccess = () => resolve(request.result ?? null); request.onerror = () => reject(request.error); }); db.close(); return result ? validateODADesign(result) : null; }
 
-function openDraftDb(): Promise<IDBDatabase> {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, 1);
-    request.onupgradeneeded = () => request.result.createObjectStore(STORE_NAME);
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
-}
-
-async function saveDraft(design: ODADesign) {
-  const db = await openDraftDb();
-  await new Promise<void>((resolve, reject) => {
-    const transaction = db.transaction(STORE_NAME, "readwrite");
-    transaction.objectStore(STORE_NAME).put(design, DRAFT_ID);
-    transaction.oncomplete = () => resolve();
-    transaction.onerror = () => reject(transaction.error);
-  });
-  db.close();
-}
-
-async function loadDraft(): Promise<ODADesign | null> {
-  const db = await openDraftDb();
-  const design = await new Promise<ODADesign | null>((resolve, reject) => {
-    const request = db.transaction(STORE_NAME, "readonly").objectStore(STORE_NAME).get(DRAFT_ID);
-    request.onsuccess = () => resolve(request.result ?? null);
-    request.onerror = () => reject(request.error);
-  });
-  db.close();
-  return design ? validateODADesign(design) : null;
-}
-
-function fabricObjectFromODA(object: ODAObject, isChild = false): FabricWithOda {
-  const common = { left: isChild ? object.x : object.x, top: isChild ? object.y : object.y, angle: object.rotation, opacity: object.opacity, visible: object.visible, selectable: !object.locked, evented: !object.locked };
+async function fabricObjectFromODA(object: ODAObject, assets: ODADesign["assets"], isChild = false): Promise<FabricWithOda> {
+  const common = { left: object.x, top: object.y, angle: object.rotation, opacity: object.opacity, visible: object.visible, selectable: !object.locked, evented: !object.locked };
   let result: FabricObject;
   if (object.type === "text") {
     result = new IText(object.content, { ...common, width: object.width, fontFamily: object.style.fontFamily, fontSize: object.style.fontSize, fontWeight: object.style.fontWeight, lineHeight: object.style.lineHeight, charSpacing: object.style.letterSpacing * 10, textAlign: object.style.textAlign, fill: object.style.fill, originX: "left", originY: "top" });
@@ -66,44 +36,88 @@ function fabricObjectFromODA(object: ODAObject, isChild = false): FabricWithOda 
     result = new FabricCircle({ ...common, radius: Math.min(object.width, object.height) / 2, scaleX: object.width / Math.min(object.width, object.height), scaleY: object.height / Math.min(object.width, object.height), fill: object.style.fill ?? "transparent", stroke: object.style.stroke ?? undefined, strokeWidth: object.style.strokeWidth ?? 0, originX: "left", originY: "top" });
   } else if (object.type === "line") {
     result = new Line([0, 0, object.x2 - object.x, object.y2 - object.y], { ...common, stroke: object.style.stroke, strokeWidth: object.style.strokeWidth, originX: "left", originY: "top" });
-  } else if (object.type === "group") {
-    const children = object.children.map((child) => fabricObjectFromODA(child, true));
-    result = new Group(children, { ...common, width: object.width, height: object.height, subTargetCheck: true, interactive: true, originX: "left", originY: "top" });
+  } else if (object.type === "image") {
+    const asset = assets.find((candidate) => candidate.id === object.assetId);
+    if (!asset) return new Rect({ ...common, width: object.width, height: object.height, fill: "#3a3b40", originX: "left", originY: "top" }) as FabricWithOda;
+    try {
+      const image = await FabricImage.fromURL(asset.src, { crossOrigin: "anonymous" });
+      const naturalWidth = image.width || asset.width;
+      const naturalHeight = image.height || asset.height;
+      const coverScale = Math.max(object.width / naturalWidth, object.height / naturalHeight) * (object.crop?.scale ?? 1);
+      image.set({ left: object.x + object.width / 2, top: object.y + object.height / 2, originX: "center", originY: "center", scaleX: coverScale, scaleY: coverScale, selectable: !object.locked, evented: !object.locked, opacity: object.opacity, angle: object.rotation });
+      image.clipPath = new Rect({ width: object.width, height: object.height, originX: "center", originY: "center" });
+      result = image;
+    } catch { result = new Rect({ ...common, width: object.width, height: object.height, fill: "#3a3b40", originX: "left", originY: "top" }); }
   } else {
-    result = new Rect({ ...common, width: object.width, height: object.height, fill: "#555", originX: "left", originY: "top" });
+    const children = await Promise.all(object.children.map((child) => fabricObjectFromODA(child, assets, true)));
+    result = new Group(children, { ...common, width: object.width, height: object.height, subTargetCheck: true, interactive: true, originX: "left", originY: "top" });
   }
   const withMetadata = result as FabricWithOda;
   withMetadata.odaId = object.id;
   withMetadata.odaType = object.type;
+  withMetadata.odaWidth = object.width;
+  withMetadata.odaHeight = object.height;
+  withMetadata.odaX = object.x;
+  withMetadata.odaY = object.y;
+  if (object.type === "image") withMetadata.odaCropScale = object.crop?.scale ?? 1;
   return withMetadata;
 }
 
-function odaFromFabricObject(object: FabricWithOda, parentX = 0, parentY = 0): ODAObject | null {
+function odaFromFabricObject(object: FabricWithOda, previous: ODAObject | undefined, parentX = 0, parentY = 0): ODAObject | null {
   if (!object.odaId || !object.odaType) return null;
-  const left = (object.left ?? 0) + parentX;
-  const top = (object.top ?? 0) + parentY;
-  const base = { id: object.odaId, x: left, y: top, width: object.getScaledWidth(), height: object.getScaledHeight(), rotation: object.angle ?? 0, opacity: object.opacity ?? 1, locked: object.selectable === false, visible: object.visible !== false, zIndex: 0 };
-  if (object.odaType === "text" && object instanceof IText) {
-    return { ...base, type: "text", content: object.text, style: { fontFamily: (object.fontFamily as typeof ODA_FONT_FAMILIES[number]) ?? "Inter", fontSize: object.fontSize ?? 16, fontWeight: Number(object.fontWeight ?? 400), lineHeight: object.lineHeight ?? 1.2, letterSpacing: (object.charSpacing ?? 0) / 10, textAlign: object.textAlign as "left" | "center" | "right", fill: String(object.fill ?? "#ffffff") } };
-  }
+  const isImage = object.odaType === "image";
+  const width = isImage ? object.odaWidth ?? previous?.width ?? object.getScaledWidth() : object.getScaledWidth();
+  const height = isImage ? object.odaHeight ?? previous?.height ?? object.getScaledHeight() : object.getScaledHeight();
+  const left = isImage ? (object.left ?? 0) - width / 2 + parentX : (object.left ?? 0) + parentX;
+  const top = isImage ? (object.top ?? 0) - height / 2 + parentY : (object.top ?? 0) + parentY;
+  const base = { id: object.odaId, x: left, y: top, width, height, rotation: object.angle ?? 0, opacity: object.opacity ?? 1, locked: object.selectable === false, visible: object.visible !== false, zIndex: previous?.zIndex ?? 0 };
+  if (object.odaType === "text" && object instanceof IText) return { ...base, type: "text", name: previous?.name, content: object.text, style: { fontFamily: (object.fontFamily as typeof ODA_FONT_FAMILIES[number]) ?? "Inter", fontSize: object.fontSize ?? 16, fontWeight: Number(object.fontWeight ?? 400), lineHeight: object.lineHeight ?? 1.2, letterSpacing: (object.charSpacing ?? 0) / 10, textAlign: object.textAlign as "left" | "center" | "right", fill: String(object.fill ?? "#ffffff") } };
   if (object.odaType === "group" && object instanceof Group) {
-    const children = object.getObjects().map((child) => odaFromFabricObject(child as FabricWithOda, left, top)).filter((child): child is ODAObject => Boolean(child));
-    return { ...base, type: "group", role: "custom", children };
+    const previousGroup = previous?.type === "group" ? previous : undefined;
+    const children = object.getObjects().map((child) => { const childMeta = child as FabricWithOda; return odaFromFabricObject(childMeta, previousGroup?.children.find((item) => item.id === childMeta.odaId), left, top); }).filter((child): child is ODAObject => Boolean(child));
+    return { ...base, type: "group", name: previousGroup?.name, role: previousGroup?.role ?? "custom", children };
   }
-  if (object.odaType === "ellipse" && object instanceof FabricCircle) return { ...base, type: "ellipse", style: { fill: String(object.fill ?? "transparent"), stroke: object.stroke ? String(object.stroke) : null, strokeWidth: object.strokeWidth ?? 0, radius: 0 } };
-  if (object.odaType === "line" && object instanceof Line) return { ...base, type: "line", x2: left + (object.x2 ?? 0), y2: top + (object.y2 ?? 0), style: { stroke: String(object.stroke ?? "#ffffff"), strokeWidth: object.strokeWidth ?? 1 } };
-  if (object.odaType === "rect" && object instanceof Rect) return { ...base, type: "rect", style: { fill: String(object.fill ?? "transparent"), stroke: object.stroke ? String(object.stroke) : null, strokeWidth: object.strokeWidth ?? 0, radius: object.rx ?? 0 } };
+  if (object.odaType === "image" && previous?.type === "image") return { ...base, type: "image", name: previous.name, assetId: previous.assetId, sourceKind: previous.sourceKind, alt: previous.alt, crop: { ...(previous.crop ?? { x: 0, y: 0 }), scale: object.odaCropScale ?? previous.crop?.scale ?? 1 } };
+  if (object.odaType === "ellipse" && object instanceof FabricCircle) return { ...base, type: "ellipse", name: previous?.name, style: { fill: String(object.fill ?? "transparent"), stroke: object.stroke ? String(object.stroke) : null, strokeWidth: object.strokeWidth ?? 0, radius: 0 } };
+  if (object.odaType === "line" && object instanceof Line) return { ...base, type: "line", name: previous?.name, x2: left + (object.x2 ?? 0), y2: top + (object.y2 ?? 0), style: { stroke: String(object.stroke ?? "#ffffff"), strokeWidth: object.strokeWidth ?? 1 } };
+  if (object.odaType === "rect" && object instanceof Rect) return { ...base, type: "rect", name: previous?.name, style: { fill: String(object.fill ?? "transparent"), stroke: object.stroke ? String(object.stroke) : null, strokeWidth: object.strokeWidth ?? 0, radius: object.rx ?? 0 } };
   return null;
 }
 
 function designFromCanvas(canvas: Canvas, previous: ODADesign): ODADesign {
-  const objects = canvas.getObjects().map((object) => odaFromFabricObject(object as FabricWithOda)).filter((object): object is ODAObject => Boolean(object));
+  const objects = canvas.getObjects().map((object) => { const fabricObject = object as FabricWithOda; return odaFromFabricObject(fabricObject, previous.objects.find((item) => item.id === fabricObject.odaId)); }).filter((object): object is ODAObject => Boolean(object));
   return validateODADesign({ ...cloneDesign(previous), objects, metadata: { ...previous.metadata, lastOperation: "edit" } });
 }
-
-function addObjectToDesign(design: ODADesign, object: ODAObject): ODADesign {
-  return validateODADesign({ ...cloneDesign(design), objects: [...design.objects, object], metadata: { ...design.metadata, lastOperation: "edit" } });
+function addObjectToDesign(design: ODADesign, object: ODAObject): ODADesign { return validateODADesign({ ...cloneDesign(design), objects: [...design.objects, object], metadata: { ...design.metadata, lastOperation: "edit" } }); }
+function selectedObjectOf(design: ODADesign, id: string | null): ODAObject | undefined {
+  if (!id) return undefined;
+  for (const object of design.objects) {
+    if (object.id === id) return object;
+    if (object.type === "group") {
+      const child = findNestedObject(object.children, id);
+      if (child) return child;
+    }
+  }
+  return undefined;
 }
+function findNestedObject(objects: ODAObject[], id: string): ODAObject | undefined {
+  for (const object of objects) {
+    if (object.id === id) return object;
+    if (object.type === "group") {
+      const child = findNestedObject(object.children, id);
+      if (child) return child;
+    }
+  }
+  return undefined;
+}
+function updateNestedObject(objects: ODAObject[], id: string, updater: (object: ODAObject) => ODAObject): ODAObject[] {
+  return objects.map((object) => {
+    if (object.id === id) return updater(object);
+    if (object.type === "group") return { ...object, children: updateNestedObject(object.children, id, updater) };
+    return object;
+  });
+}
+function updateObject(design: ODADesign, id: string, updater: (object: ODAObject) => ODAObject): ODADesign { return validateODADesign({ ...cloneDesign(design), objects: updateNestedObject(design.objects, id, updater), metadata: { ...design.metadata, lastOperation: "edit" } }); }
 
 export default function SocialPostEditor({ onBack }: Props) {
   const canvasElement = useRef<HTMLCanvasElement | null>(null);
@@ -111,131 +125,48 @@ export default function SocialPostEditor({ onBack }: Props) {
   const applying = useRef(false);
   const history = useRef<HistoryEntry[]>([{ label: "Initial", design: cloneDesign(starterDesign) }]);
   const historyIndex = useRef(0);
+  const uploadInput = useRef<HTMLInputElement | null>(null);
+  const replaceAssetId = useRef<string | null>(null);
+  const renderVersion = useRef(0);
   const [design, setDesign] = useState<ODADesign>(() => cloneDesign(starterDesign));
   const [fontReady, setFontReady] = useState(false);
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const detachedGroup = useRef<{ group: Extract<ODAObject, { type: "group" }>; childIds: string[] } | null>(null);
+  const [detachedGroup, setDetachedGroup] = useState<{ group: GroupObject; childIds: string[] } | null>(null);
   const [zoom, setZoom] = useState(() => typeof window === "undefined" ? 0.58 : Math.min(0.58, Math.max(0.3, (window.innerWidth - 24) / 1080)));
   const [, setHistoryTick] = useState(0);
+  const selected = selectedObjectOf(design, selectedId);
 
-  const commit = useCallback((next: ODADesign, label: string) => {
-    const validated = validateODADesign(next);
-    history.current = history.current.slice(0, historyIndex.current + 1).concat([{ label, design: cloneDesign(validated) }]);
-    historyIndex.current = history.current.length - 1;
-    setDesign(validated);
-    setHistoryTick((value) => value + 1);
+  const commit = useCallback((next: ODADesign, label: string) => { const validated = validateODADesign(next); history.current = history.current.slice(0, historyIndex.current + 1).concat([{ label, design: cloneDesign(validated) }]); historyIndex.current = history.current.length - 1; setDesign(validated); setHistoryTick((value) => value + 1); }, []);
+  const renderDesign = useCallback(async (next: ODADesign) => { const canvas = fabricCanvas.current; if (!canvas) return; const version = ++renderVersion.current; applying.current = true; canvas.clear(); canvas.backgroundColor = next.document.background.color; const objects = await Promise.all(next.objects.slice().sort((a, b) => a.zIndex - b.zIndex).map((object) => fabricObjectFromODA(object, next.assets))); if (fabricCanvas.current !== canvas || version !== renderVersion.current) return; objects.forEach((object) => canvas.add(object)); canvas.setZoom(zoom); canvas.setDimensions({ width: 1080 * zoom, height: 1080 * zoom }); canvas.renderAll(); applying.current = false; }, [zoom]);
+  const commitCanvasEdit = useCallback((label: string) => { if (applying.current || !fabricCanvas.current) return; try { commit(designFromCanvas(fabricCanvas.current, design), label); } catch (error) { console.error("[ODA] rejected canvas state", error); toast.error("Değişiklik sözleşmeye uymadı"); } }, [commit, design]);
+
+  useEffect(() => { let active = true; Promise.all(ODA_FONT_FAMILIES.map((family) => document.fonts.load(`16px "${family}"`))).then(() => { if (active) setFontReady(true); }).catch(() => { if (active) setFontReady(false); }); return () => { active = false; }; }, []);
+  useEffect(() => { if (!canvasElement.current) return; const canvas = new Canvas(canvasElement.current, { width: 1080 * zoom, height: 1080 * zoom, preserveObjectStacking: true, selection: true, stopContextMenu: true }); fabricCanvas.current = canvas; canvas.on("selection:created", (event) => setSelectedId((event.selected?.[0] as FabricWithOda | undefined)?.odaId ?? null)); canvas.on("selection:updated", (event) => setSelectedId((event.selected?.[0] as FabricWithOda | undefined)?.odaId ?? null)); canvas.on("selection:cleared", () => setSelectedId(null)); canvas.on("object:modified", () => commitCanvasEdit("Modify object")); canvas.on("text:changed", () => commitCanvasEdit("Edit text")); canvas.on("mouse:dblclick", (event) => { const target = event.target as FabricWithOda | undefined; if (!target?.odaId) return; const subTargets = (event as unknown as { subTargets?: FabricWithOda[] }).subTargets ?? []; const subTarget = subTargets.find((item) => item.odaType === "text") ?? (target.odaType === "text" ? target : undefined); const childText = subTarget as (FabricWithOda & IText) | undefined; if (childText?.odaId && childText instanceof IText) { setSelectedId(childText.odaId); childText.enterEditing(); childText.selectAll(); toast.success(target.odaType === "group" ? "Group child text editing — group intact" : "Text editing"); } }); void renderDesign(design); return () => { canvas.dispose(); fabricCanvas.current = null; }; // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  useEffect(() => { void renderDesign(design); }, [design, renderDesign]);
+  useEffect(() => { const onKeyDown = (event: KeyboardEvent) => { if ((event.key === "Delete" || event.key === "Backspace") && !(event.target instanceof HTMLInputElement) && !(event.target instanceof HTMLTextAreaElement)) { const canvas = fabricCanvas.current; const activeObjects = canvas?.getActiveObjects() ?? []; if (activeObjects.length) { activeObjects.forEach((object) => canvas?.remove(object)); canvas?.discardActiveObject(); canvas?.renderAll(); commitCanvasEdit("Delete object"); } } if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "z") { event.preventDefault(); event.shiftKey ? redo() : undo(); } }; window.addEventListener("keydown", onKeyDown); return () => window.removeEventListener("keydown", onKeyDown); });
 
-  const renderDesign = useCallback((next: ODADesign) => {
-    const canvas = fabricCanvas.current;
-    if (!canvas) return;
-    applying.current = true;
-    canvas.clear();
-    canvas.backgroundColor = next.document.background.color;
-    next.objects.slice().sort((a, b) => a.zIndex - b.zIndex).forEach((object) => canvas.add(fabricObjectFromODA(object)));
-    canvas.setZoom(zoom);
-    canvas.setDimensions({ width: 1080 * zoom, height: 1080 * zoom });
-    canvas.renderAll();
-    applying.current = false;
-  }, [zoom]);
-
-  const commitCanvasEdit = useCallback((label: string) => {
-    if (applying.current || !fabricCanvas.current) return;
-    try { commit(designFromCanvas(fabricCanvas.current, design), label); } catch (error) { console.error("[ODA] rejected canvas state", error); toast.error("Değişiklik sözleşmeye uymadı"); }
-  }, [commit, design]);
-
-  useEffect(() => {
-    let active = true;
-    Promise.all(ODA_FONT_FAMILIES.map((family) => document.fonts.load(`16px "${family}"`))).then(() => { if (active) setFontReady(true); }).catch(() => { if (active) setFontReady(false); });
-    return () => { active = false; };
-  }, []);
-
-  useEffect(() => {
-    if (!canvasElement.current) return;
-    const canvas = new Canvas(canvasElement.current, { width: 1080 * zoom, height: 1080 * zoom, preserveObjectStacking: true, selection: true, stopContextMenu: true });
-    fabricCanvas.current = canvas;
-    canvas.on("selection:created", (event) => setSelectedId((event.selected?.[0] as FabricWithOda | undefined)?.odaId ?? null));
-    canvas.on("selection:updated", (event) => setSelectedId((event.selected?.[0] as FabricWithOda | undefined)?.odaId ?? null));
-    canvas.on("selection:cleared", () => setSelectedId(null));
-    canvas.on("object:modified", () => commitCanvasEdit("Modify object"));
-    canvas.on("text:changed", () => commitCanvasEdit("Edit text"));
-    renderDesign(design);
-    return () => { canvas.dispose(); fabricCanvas.current = null; };
-    // The canvas is intentionally created once; zoom/render updates use the next effect.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => { renderDesign(design); }, [design, renderDesign]);
-
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if ((event.key === "Delete" || event.key === "Backspace") && !(event.target instanceof HTMLInputElement) && !(event.target instanceof HTMLTextAreaElement)) {
-        const canvas = fabricCanvas.current;
-        const activeObjects = canvas?.getActiveObjects() ?? [];
-        if (activeObjects.length) { activeObjects.forEach((object) => canvas?.remove(object)); canvas?.discardActiveObject(); canvas?.renderAll(); commitCanvasEdit("Delete object"); }
-      }
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "z") { event.preventDefault(); event.shiftKey ? redo() : undo(); }
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  });
-
+  function detachGroup(groupId: string, preferredChildId?: string) { const group = design.objects.find((object): object is GroupObject => object.id === groupId && object.type === "group"); if (!group) return; setDetachedGroup({ group: cloneDesign({ ...design, objects: [group] }).objects[0] as GroupObject, childIds: group.children.map((child) => child.id) }); const children = group.children.map((child) => ({ ...child, x: child.x + group.x, y: child.y + group.y })); commit(validateODADesign({ ...cloneDesign(design), objects: design.objects.flatMap((object) => object.id === group.id ? children : [object]), metadata: { ...design.metadata, lastOperation: "edit" } }), "Edit group child"); const targetChild = preferredChildId && group.children.some((child) => child.id === preferredChildId) ? preferredChildId : group.children.find((child) => child.type === "text")?.id ?? group.children[0]?.id; setSelectedId(targetChild ?? null); toast.success("Group text child doğrudan düzenlenebilir"); }
+  function editSelectedGroupTextInPlace() { const groupData = selected?.type === "group" ? selected : undefined; const groupObject = groupData ? fabricCanvas.current?.getObjects().find((object) => (object as FabricWithOda).odaId === groupData.id) as (FabricWithOda & Group) | undefined : undefined; const childId = groupData?.children.find((child) => child.type === "text")?.id; const child = groupObject && childId ? groupObject.getObjects().find((object) => (object as FabricWithOda).odaId === childId) as (FabricWithOda & IText) | undefined : undefined; if (!child?.odaId || !(child instanceof IText)) { toast.error("Group içinde text child bulunamadı"); return; } setSelectedId(child.odaId); child.enterEditing(); child.selectAll(); toast.success("Group child text editing — group intact"); }
+  function regroupLast() { if (!detachedGroup) return; const children = design.objects.filter((object): object is ODAObject => detachedGroup.childIds.includes(object.id)).map((child) => ({ ...child, x: child.x - detachedGroup.group.x, y: child.y - detachedGroup.group.y })); if (children.length !== detachedGroup.childIds.length) { toast.error("Regroup için tüm child nesneleri gerekli"); return; } commit(validateODADesign({ ...cloneDesign(design), objects: design.objects.filter((object) => !detachedGroup.childIds.includes(object.id)).concat({ ...detachedGroup.group, children }), metadata: { ...design.metadata, lastOperation: "edit" } }), "Regroup children"); setDetachedGroup(null); toast.success("Child nesneler tekrar group oldu"); }
   async function undo() { if (historyIndex.current === 0) return; historyIndex.current -= 1; const previous = cloneDesign(history.current[historyIndex.current].design); setDesign({ ...previous, metadata: { ...previous.metadata, lastOperation: "undo" } }); setHistoryTick((value) => value + 1); }
   async function redo() { if (historyIndex.current >= history.current.length - 1) return; historyIndex.current += 1; const next = cloneDesign(history.current[historyIndex.current].design); setDesign({ ...next, metadata: { ...next.metadata, lastOperation: "redo" } }); setHistoryTick((value) => value + 1); }
-
-  async function save() { await saveDraft(validateODADesign(design)); setSavedAt(new Date().toLocaleTimeString()); toast.success("ODA taslağı IndexedDB'ye kaydedildi"); }
-  async function open() { const draft = await loadDraft(); if (!draft) { toast.info("Kayıtlı local draft bulunamadı"); return; } history.current = [{ label: "Open draft", design: draft }]; historyIndex.current = 0; setDesign(draft); setSavedAt(new Date().toLocaleTimeString()); toast.success("Local draft açıldı"); }
+  async function save() { try { await saveDraft(validateODADesign(design)); setSavedAt(new Date().toLocaleTimeString()); toast.success("ODA taslağı IndexedDB'ye kaydedildi"); } catch (error) { console.error(error); toast.error("IndexedDB kotası doldu; görseli küçültüp tekrar dene"); } }
+  async function open() { try { const draft = await loadDraft(); if (!draft) { toast.info("Kayıtlı local draft bulunamadı"); return; } history.current = [{ label: "Open draft", design: draft }]; historyIndex.current = 0; setDesign(draft); setSavedAt(new Date().toLocaleTimeString()); toast.success("Local draft açıldı"); } catch (error) { console.error(error); toast.error("Draft okunamadı veya şema geçersiz"); } }
   function exportPng() { if (!fontReady) { toast.error("Fontlar yüklenmeden export kilitli"); return; } const canvas = fabricCanvas.current; if (!canvas) return; const url = canvas.toDataURL({ format: "png", multiplier: 2, width: 1080, height: 1080 }); const link = document.createElement("a"); link.href = url; link.download = "open-design-atlas-1080x1080@2x.png"; link.click(); toast.success("2x PNG export hazırlandı"); }
-
-  function addText() { commit(addObjectToDesign(design, { id: `text-${Date.now()}`, type: "text", name: "text", x: 130, y: 850, width: 700, height: 70, rotation: 0, opacity: 1, locked: false, visible: true, zIndex: 8, content: "Edit this text", style: { fontFamily: "IBM Plex Sans", fontSize: 42, fontWeight: 500, lineHeight: 1.1, letterSpacing: 0, textAlign: "left", fill: "#F2F0E9" } }), "Add text"); }
-  function addCard() {
-    const stamp = Date.now();
-    commit(addObjectToDesign(design, { id: `card-${stamp}`, type: "group", name: "card", role: "card", x: 110, y: 730, width: 860, height: 220, rotation: 0, opacity: 1, locked: false, visible: true, zIndex: 7, children: [
-      { id: `card-bg-${stamp}`, type: "rect", x: 0, y: 0, width: 860, height: 220, rotation: 0, opacity: 1, locked: false, visible: true, zIndex: 0, style: { fill: "#F05A3C", stroke: null, radius: 18 } },
-      { id: `card-label-${stamp}`, type: "text", x: 28, y: 30, width: 240, height: 34, rotation: 0, opacity: 1, locked: false, visible: true, zIndex: 1, content: "CARD / EDITABLE", style: { fontFamily: "IBM Plex Mono", fontSize: 18, fontWeight: 500, lineHeight: 1, letterSpacing: 0, textAlign: "left", fill: "#111214" } },
-      { id: `card-copy-${stamp}`, type: "text", x: 28, y: 84, width: 760, height: 70, rotation: 0, opacity: 1, locked: false, visible: true, zIndex: 2, content: "A compound card, still made of objects.", style: { fontFamily: "Space Grotesk", fontSize: 34, fontWeight: 700, lineHeight: 1, letterSpacing: -1, textAlign: "left", fill: "#111214" } },
-    ] }), "Add card");
-  }
-  function addTypeBlock() {
-    const stamp = Date.now();
-    const id = `type-block-${stamp}`;
-    commit(addObjectToDesign(design, { id, type: "group", name: "typographic-block", role: "typographic-block", x: 110, y: 310, width: 800, height: 160, rotation: 0, opacity: 1, locked: false, visible: true, zIndex: 6, children: [
-      { id: `type-kicker-${stamp}`, type: "text", x: 0, y: 0, width: 300, height: 30, rotation: 0, opacity: 1, locked: false, visible: true, zIndex: 0, content: "TYPOGRAPHIC BLOCK", style: { fontFamily: "IBM Plex Mono", fontSize: 16, fontWeight: 500, lineHeight: 1, letterSpacing: 1, textAlign: "left", fill: "#F05A3C" } },
-      { id: `type-title-${stamp}`, type: "text", x: 0, y: 42, width: 800, height: 82, rotation: 0, opacity: 1, locked: false, visible: true, zIndex: 1, content: "Objects, not pixels.", style: { fontFamily: "Space Grotesk", fontSize: 58, fontWeight: 700, lineHeight: 1, letterSpacing: -2, textAlign: "left", fill: "#F2F0E9" } },
-    ] }), "Add typographic block");
-    setSelectedId(id);
-  }
+  function addText() { const id = `text-${Date.now()}`; commit(addObjectToDesign(design, { id, type: "text", name: "text", x: 130, y: 850, width: 700, height: 70, rotation: 0, opacity: 1, locked: false, visible: true, zIndex: 8, content: "Edit this text", style: { fontFamily: "IBM Plex Sans", fontSize: 42, fontWeight: 500, lineHeight: 1.1, letterSpacing: 0, textAlign: "left", fill: "#F2F0E9" } }), "Add text"); setSelectedId(id); }
+  function addCard() { const stamp = Date.now(); commit(addObjectToDesign(design, { id: `card-${stamp}`, type: "group", name: "card", role: "card", x: 110, y: 730, width: 860, height: 220, rotation: 0, opacity: 1, locked: false, visible: true, zIndex: 7, children: [{ id: `card-bg-${stamp}`, type: "rect", x: 0, y: 0, width: 860, height: 220, rotation: 0, opacity: 1, locked: false, visible: true, zIndex: 0, style: { fill: "#F05A3C", stroke: null, radius: 18 } }, { id: `card-label-${stamp}`, type: "text", x: 28, y: 30, width: 240, height: 34, rotation: 0, opacity: 1, locked: false, visible: true, zIndex: 1, content: "CARD / EDITABLE", style: { fontFamily: "IBM Plex Mono", fontSize: 18, fontWeight: 500, lineHeight: 1, letterSpacing: 0, textAlign: "left", fill: "#111214" } }, { id: `card-copy-${stamp}`, type: "text", x: 28, y: 84, width: 760, height: 70, rotation: 0, opacity: 1, locked: false, visible: true, zIndex: 2, content: "A compound card, still made of objects.", style: { fontFamily: "Space Grotesk", fontSize: 34, fontWeight: 700, lineHeight: 1, letterSpacing: -1, textAlign: "left", fill: "#111214" } }] }), "Add card"); }
+  function addTypeBlock() { const stamp = Date.now(); const id = `type-block-${stamp}`; commit(addObjectToDesign(design, { id, type: "group", name: "typographic-block", role: "typographic-block", x: 110, y: 310, width: 800, height: 160, rotation: 0, opacity: 1, locked: false, visible: true, zIndex: 6, children: [{ id: `type-kicker-${stamp}`, type: "text", x: 0, y: 0, width: 300, height: 30, rotation: 0, opacity: 1, locked: false, visible: true, zIndex: 0, content: "TYPOGRAPHIC BLOCK", style: { fontFamily: "IBM Plex Mono", fontSize: 16, fontWeight: 500, lineHeight: 1, letterSpacing: 1, textAlign: "left", fill: "#F05A3C" } }, { id: `type-title-${stamp}`, type: "text", x: 0, y: 42, width: 800, height: 82, rotation: 0, opacity: 1, locked: false, visible: true, zIndex: 1, content: "Objects, not pixels.", style: { fontFamily: "Space Grotesk", fontSize: 58, fontWeight: 700, lineHeight: 1, letterSpacing: -2, textAlign: "left", fill: "#F2F0E9" } }] }), "Add typographic block"); setSelectedId(id); }
   function addCircle() { commit(addObjectToDesign(design, { id: `ellipse-${Date.now()}`, type: "ellipse", name: "orb", x: 760, y: 710, width: 170, height: 170, rotation: 0, opacity: 1, locked: false, visible: true, zIndex: 7, style: { fill: "#F05A3C", stroke: null, radius: 85 } }), "Add circle"); }
-  function addFrame() { commit(addObjectToDesign(design, { id: `frame-${Date.now()}`, type: "group", name: "frame", role: "frame", x: 120, y: 820, width: 840, height: 170, rotation: 0, opacity: 1, locked: false, visible: true, zIndex: 6, children: [{ id: `frame-inner-${Date.now()}`, type: "rect", x: 0, y: 0, width: 840, height: 170, rotation: 0, opacity: 1, locked: false, visible: true, zIndex: 0, style: { fill: "transparent", stroke: "#F2F0E9", strokeWidth: 3, radius: 12 } }, { id: `frame-label-${Date.now()}`, type: "text", x: 28, y: 55, width: 500, height: 50, rotation: 0, opacity: 1, locked: false, visible: true, zIndex: 1, content: "EDITABLE FRAME / 1080", style: { fontFamily: "IBM Plex Mono", fontSize: 24, fontWeight: 500, lineHeight: 1, letterSpacing: 0, textAlign: "left", fill: "#F2F0E9" } }] }), "Add frame"); }
-  function addBadge() { commit(addObjectToDesign(design, { id: `badge-${Date.now()}`, type: "group", name: "badge", role: "badge", x: 760, y: 350, width: 190, height: 72, rotation: 0, opacity: 1, locked: false, visible: true, zIndex: 8, children: [{ id: `badge-bg-${Date.now()}`, type: "rect", x: 0, y: 0, width: 190, height: 72, rotation: 0, opacity: 1, locked: false, visible: true, zIndex: 0, style: { fill: "#F2F0E9", stroke: null, radius: 36 } }, { id: `badge-text-${Date.now()}`, type: "text", x: 25, y: 23, width: 140, height: 30, rotation: 0, opacity: 1, locked: false, visible: true, zIndex: 1, content: "ODA / READY", style: { fontFamily: "IBM Plex Mono", fontSize: 17, fontWeight: 500, lineHeight: 1, letterSpacing: 0, textAlign: "center", fill: "#111214" } }] }), "Add badge"); }
-  function editGroupChildren() {
-    const group = design.objects.find((object): object is Extract<ODAObject, { type: "group" }> => object.id === selectedId && object.type === "group");
-    if (!group) return;
-    detachedGroup.current = { group: cloneDesign({ ...design, objects: [group] }).objects[0] as Extract<ODAObject, { type: "group" }>, childIds: group.children.map((child) => child.id) };
-    const children = group.children.map((child) => ({ ...child, x: child.x + group.x, y: child.y + group.y }));
-    commit(validateODADesign({ ...cloneDesign(design), objects: design.objects.flatMap((object) => object.id === group.id ? children : [object]), metadata: { ...design.metadata, lastOperation: "edit" } }), "Edit group children");
-    setSelectedId(null);
-    toast.success("Group children ayrı ayrı düzenlenebilir");
-  }
-  function regroupLast() {
-    const detached = detachedGroup.current;
-    if (!detached) return;
-    const children = design.objects.filter((object): object is ODAObject => detached.childIds.includes(object.id)).map((child) => ({ ...child, x: child.x - detached.group.x, y: child.y - detached.group.y }));
-    if (children.length !== detached.childIds.length) { toast.error("Regroup için tüm child nesneleri gerekli"); return; }
-    const group = { ...detached.group, children };
-    commit(validateODADesign({ ...cloneDesign(design), objects: design.objects.filter((object) => !detached.childIds.includes(object.id)).concat(group), metadata: { ...design.metadata, lastOperation: "edit" } }), "Regroup children");
-    detachedGroup.current = null;
-    setSelectedId(group.id);
-    toast.success("Child nesneler tekrar group oldu");
-  }
+  function addFrame() { const stamp = Date.now(); commit(addObjectToDesign(design, { id: `frame-${stamp}`, type: "group", name: "frame", role: "frame", x: 120, y: 820, width: 840, height: 170, rotation: 0, opacity: 1, locked: false, visible: true, zIndex: 6, children: [{ id: `frame-inner-${stamp}`, type: "rect", x: 0, y: 0, width: 840, height: 170, rotation: 0, opacity: 1, locked: false, visible: true, zIndex: 0, style: { fill: "transparent", stroke: "#F2F0E9", strokeWidth: 3, radius: 12 } }, { id: `frame-label-${stamp}`, type: "text", x: 28, y: 55, width: 500, height: 50, rotation: 0, opacity: 1, locked: false, visible: true, zIndex: 1, content: "EDITABLE FRAME / 1080", style: { fontFamily: "IBM Plex Mono", fontSize: 24, fontWeight: 500, lineHeight: 1, letterSpacing: 0, textAlign: "left", fill: "#F2F0E9" } }] }), "Add frame"); }
+  function addBadge() { const stamp = Date.now(); commit(addObjectToDesign(design, { id: `badge-${stamp}`, type: "group", name: "badge", role: "badge", x: 760, y: 350, width: 190, height: 72, rotation: 0, opacity: 1, locked: false, visible: true, zIndex: 8, children: [{ id: `badge-bg-${stamp}`, type: "rect", x: 0, y: 0, width: 190, height: 72, rotation: 0, opacity: 1, locked: false, visible: true, zIndex: 0, style: { fill: "#F2F0E9", stroke: null, radius: 36 } }, { id: `badge-text-${stamp}`, type: "text", x: 25, y: 23, width: 140, height: 30, rotation: 0, opacity: 1, locked: false, visible: true, zIndex: 1, content: "ODA / READY", style: { fontFamily: "IBM Plex Mono", fontSize: 17, fontWeight: 500, lineHeight: 1, letterSpacing: 0, textAlign: "center", fill: "#111214" } }] }), "Add badge"); }
 
-  return <main className="editor-shell">
-    <header className="editor-topbar"><button className="editor-back" onClick={onBack}><ChevronLeft size={16} /> Atlas</button><div><span className="editor-eyebrow">TECHNICAL SPIKE / ODA DESIGN</span><h1>SocialPostEditor</h1></div><div className="editor-top-actions"><span className={fontReady ? "editor-status ready" : "editor-status"}>{fontReady ? "FONTS READY" : "LOADING FONTS"}</span><button onClick={undo} title="Undo"><Undo2 size={17} /></button><button onClick={redo} title="Redo"><Redo2 size={17} /></button></div></header>
-    <section className="editor-layout">
-      <aside className="editor-sidebar"><span className="editor-label">OBJECTS / EDITABLE</span><div className="editor-tool-grid"><button onClick={addText}><Type size={17} />Text</button><button onClick={addTypeBlock}><Type size={17} />Type block</button><button onClick={addCard}><Square size={17} />Card</button><button onClick={addCircle}><Circle size={17} />Orb</button><button onClick={addFrame}><Frame size={17} />Frame</button><button onClick={addBadge}><BadgeCheck size={17} />Badge</button></div><div className="editor-divider" /><span className="editor-label">DOCUMENT</span><div className="editor-actions"><button onClick={save}><Copy size={16} /> Save draft</button><button onClick={open}><Layers3 size={16} /> Open draft</button><button className="export-action" onClick={exportPng}><ArrowDownToLine size={16} /> Export 2x PNG</button></div><p className="editor-hint">All objects remain in the ODA JSON model. Groups contain editable children; bitmap assets are kept separate and are not flattened into the document.</p></aside>
-      <div className="editor-stage-wrap"><div className="editor-stage-head"><span>1080 × 1080 / {Math.round(zoom * 100)}%</span><span>{selectedId ? `SELECTED / ${selectedId}` : "SELECT AN OBJECT"}</span></div><div className="editor-stage"><canvas ref={canvasElement} /></div><div className="editor-stage-foot"><button onClick={() => setZoom((value) => Math.max(.3, value - .05))}><Minus size={14} /></button><button onClick={() => setZoom((value) => Math.min(.8, value + .05))}><Plus size={14} /></button><span>{savedAt ? `LOCAL DRAFT / ${savedAt}` : "LOCAL-FIRST / NOT SAVED"}</span><span className="editor-history">{historyIndex.current + 1} / {history.current.length} commands</span></div></div>
-      <aside className="editor-inspector"><span className="editor-label">CONTRACT</span><div className="contract-card"><b>oda.design/1.0</b><span>Strict Zod validation</span><span>Editable object graph</span><span>Bitmap / editable split</span></div><span className="editor-label">SELECTION</span><div className="selection-card">{selectedId ? <><strong>{selectedId}</strong><span>Fabric object ↔ ODA object</span>{design.objects.find((object) => object.id === selectedId)?.type === "group" && <button onClick={editGroupChildren}><Layers3 size={15} /> Edit group children</button>}<button onClick={() => { const canvas = fabricCanvas.current; canvas?.getActiveObjects().forEach((object) => canvas.remove(object)); canvas?.discardActiveObject(); canvas?.renderAll(); commitCanvasEdit("Delete selected"); }}><Trash2 size={15} /> Delete selected</button></> : detachedGroup.current ? <><span>Group children are separate editable objects.</span><button onClick={regroupLast}><Layers3 size={15} /> Regroup last</button></> : <span>Click a text, card, frame or badge to edit it directly on the canvas. Select a group to edit its children separately.</span>}</div><span className="editor-label">ALLOWED FONTS</span><div className="font-list">{ODA_FONT_FAMILIES.slice(0, 7).map((font) => <span key={font}>{font}</span>)}</div></aside>
-    </section>
-  </main>;
+  async function fileToDataUrl(file: File): Promise<{ src: string; width: number; height: number }> { const source = await new Promise<string>((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(String(reader.result)); reader.onerror = () => reject(reader.error); reader.readAsDataURL(file); }); const image = await new Promise<HTMLImageElement>((resolve, reject) => { const element = new Image(); element.onload = () => resolve(element); element.onerror = reject; element.src = source; }); const max = 1400; const scale = Math.min(1, max / Math.max(image.naturalWidth, image.naturalHeight)); const canvas = document.createElement("canvas"); canvas.width = Math.max(1, Math.round(image.naturalWidth * scale)); canvas.height = Math.max(1, Math.round(image.naturalHeight * scale)); canvas.getContext("2d")?.drawImage(image, 0, 0, canvas.width, canvas.height); return { src: canvas.toDataURL("image/jpeg", 0.86), width: canvas.width, height: canvas.height }; }
+  async function onImagePicked(event: React.ChangeEvent<HTMLInputElement>) { const file = event.target.files?.[0]; event.target.value = ""; if (!file) return; try { const data = await fileToDataUrl(file); const assetId = replaceAssetId.current ?? `asset-${Date.now()}`; const currentAsset = design.assets.find((asset) => asset.id === assetId); const assets = currentAsset ? design.assets.map((asset) => asset.id === assetId ? { ...asset, src: data.src, width: data.width, height: data.height } : asset) : [...design.assets, { id: assetId, kind: "image" as const, src: data.src, alt: file.name.slice(0, 240), width: data.width, height: data.height, source: "user-upload" as const }]; const existing = design.objects.find((object): object is Extract<ODAObject, { type: "image" }> => object.id === replaceAssetId.current && object.type === "image"); const nextObject: ODAObject = existing ? { ...existing, assetId, sourceKind: "user-upload", crop: { ...(existing.crop ?? { x: 0, y: 0 }), scale: existing.crop?.scale ?? 1 } } : { id: `image-${Date.now()}`, type: "image", name: file.name, x: 180, y: 300, width: 720, height: 460, rotation: 0, opacity: 1, locked: false, visible: true, zIndex: 5, assetId, sourceKind: "user-upload", alt: file.name.slice(0, 240), crop: { x: 0, y: 0, scale: 1 } }; const next = existing ? { ...cloneDesign(design), assets, objects: design.objects.map((object) => object.id === existing.id ? nextObject : object), metadata: { ...design.metadata, lastOperation: "edit" as const } } : { ...cloneDesign(design), assets, objects: [...design.objects, nextObject], metadata: { ...design.metadata, lastOperation: "edit" as const } }; replaceAssetId.current = null; commit(validateODADesign(next), existing ? "Replace image" : "Add image"); setSelectedId(nextObject.id); toast.success(existing ? "Görsel değiştirildi" : "Görsel local asset olarak eklendi"); } catch (error) { console.error(error); toast.error("Görsel işlenemedi"); } }
+  function replaceSelectedImage() { if (selected?.type !== "image") return; replaceAssetId.current = selected.id; uploadInput.current?.click(); }
+  function updateSelected(patch: Partial<Pick<ODAObject, "x" | "y" | "width" | "height" | "rotation" | "opacity">> & { content?: string; fontFamily?: typeof ODA_FONT_FAMILIES[number]; fontSize?: number; fill?: string }) { if (!selectedId || !selected) return; const next = updateObject(design, selectedId, (object) => { const base = { ...object, ...Object.fromEntries(Object.entries(patch).filter(([key]) => ["x", "y", "width", "height", "rotation", "opacity"].includes(key))) } as ODAObject; if (object.type === "text") return { ...base, type: "text", content: patch.content ?? object.content, style: { ...object.style, fontFamily: patch.fontFamily ?? object.style.fontFamily, fontSize: patch.fontSize ?? object.style.fontSize, fill: patch.fill ?? object.style.fill } }; if (object.type === "image" && patch.fill) return object; return base; }); commit(next, "Update properties"); }
+  function setImageCrop(scale: number) { if (selected?.type !== "image") return; commit(updateObject(design, selected.id, (object) => object.type === "image" ? { ...object, crop: { ...(object.crop ?? { x: 0, y: 0 }), scale } } : object), "Crop image"); }
+
+  return <main className="editor-shell"><input ref={uploadInput} type="file" accept="image/png,image/jpeg,image/webp" className="editor-hidden-input" onChange={onImagePicked} /><header className="editor-topbar"><button className="editor-back" onClick={onBack}><ChevronLeft size={16} /> Atlas</button><div><span className="editor-eyebrow">TECHNICAL SPIKE / ODA DESIGN</span><h1>SocialPostEditor</h1></div><div className="editor-top-actions"><span className={fontReady ? "editor-status ready" : "editor-status"}>{fontReady ? "FONTS READY" : "LOADING FONTS"}</span><button onClick={() => void undo()} title="Undo"><Undo2 size={17} /></button><button onClick={() => void redo()} title="Redo"><Redo2 size={17} /></button></div></header><section className="editor-layout"><aside className="editor-sidebar"><span className="editor-label">OBJECTS / EDITABLE</span><div className="editor-tool-grid"><button onClick={addText}><Type size={17} />Text</button><button onClick={addTypeBlock}><Type size={17} />Type block</button><button onClick={addCard}><Square size={17} />Card</button><button onClick={addCircle}><Circle size={17} />Orb</button><button onClick={addFrame}><Frame size={17} />Frame</button><button onClick={addBadge}><BadgeCheck size={17} />Badge</button></div><div className="editor-divider" /><span className="editor-label">ASSETS / LOCAL-FIRST</span><div className="editor-actions"><button onClick={() => { replaceAssetId.current = null; uploadInput.current?.click(); }}><ImagePlus size={16} /> Upload image</button><button onClick={save}><Copy size={16} /> Save draft</button><button onClick={open}><Layers3 size={16} /> Open draft</button><button className="export-action" onClick={exportPng}><ArrowDownToLine size={16} /> Export 2x PNG</button></div><p className="editor-hint">Images are resized into a local ODA asset before IndexedDB storage. No auth, S3 or external upload is used.</p></aside><div className="editor-stage-wrap"><div className="editor-stage-head"><span>1080 × 1080 / {Math.round(zoom * 100)}%</span><span>{selectedId ? `SELECTED / ${selectedId}` : "SELECT AN OBJECT"}</span></div><div className="editor-stage"><canvas ref={canvasElement} /></div><div className="editor-stage-foot"><button onClick={() => setZoom((value) => Math.max(.3, value - .05))}><Minus size={14} /></button><button onClick={() => setZoom((value) => Math.min(.8, value + .05))}><Plus size={14} /></button><span>{savedAt ? `LOCAL DRAFT / ${savedAt}` : "LOCAL-FIRST / NOT SAVED"}</span><span className="editor-history">{historyIndex.current + 1} / {history.current.length} commands</span></div></div><aside className="editor-inspector"><span className="editor-label">PROPERTIES / ODA JSON</span>{selected ? <div className="properties-panel"><strong>{selected.name ?? selected.id}</strong><span className="property-type">{selected.type}{selected.type === "group" ? ` / ${selected.role}` : ""}</span>{selected.type === "text" && <><label>Content<input value={selected.content} onChange={(event) => updateSelected({ content: event.target.value })} /></label><label>Font<select value={selected.style.fontFamily} onChange={(event) => updateSelected({ fontFamily: event.target.value as typeof ODA_FONT_FAMILIES[number] })}>{ODA_FONT_FAMILIES.map((font) => <option key={font}>{font}</option>)}</select></label><label>Size<input type="number" min="4" max="360" value={selected.style.fontSize} onChange={(event) => updateSelected({ fontSize: Number(event.target.value) })} /></label><label>Color<input type="color" value={selected.style.fill} onChange={(event) => updateSelected({ fill: event.target.value })} /></label></>}{selected.type === "image" && <><span className="property-note">assetId: {selected.assetId}</span><button onClick={replaceSelectedImage}><Replace size={15} /> Replace local image</button><label>Crop / cover<input type="range" min="1" max="2.4" step="0.1" value={selected.crop?.scale ?? 1} onChange={(event) => setImageCrop(Number(event.target.value))} /></label><button onClick={() => setImageCrop(1)}><RotateCcw size={15} /> Reset crop</button></>}<div className="property-grid"><label>X<input type="number" value={Math.round(selected.x)} onChange={(event) => updateSelected({ x: Number(event.target.value) })} /></label><label>Y<input type="number" value={Math.round(selected.y)} onChange={(event) => updateSelected({ y: Number(event.target.value) })} /></label><label>W<input type="number" min="1" max="1080" value={Math.round(selected.width)} onChange={(event) => updateSelected({ width: Number(event.target.value) })} /></label><label>H<input type="number" min="1" max="1080" value={Math.round(selected.height)} onChange={(event) => updateSelected({ height: Number(event.target.value) })} /></label></div><label>Rotation<input type="number" value={Math.round(selected.rotation)} onChange={(event) => updateSelected({ rotation: Number(event.target.value) })} /></label>{selected.type === "group" && <><button onClick={editSelectedGroupTextInPlace}><Type size={15} /> Edit text child in place</button><button onClick={() => detachGroup(selected.id)}><Layers3 size={15} /> Edit group children</button></>}{detachedGroup && <button onClick={regroupLast}><Layers3 size={15} /> Regroup last</button>}<button className="danger-action" onClick={() => { const canvas = fabricCanvas.current; canvas?.getActiveObjects().forEach((object) => canvas.remove(object)); canvas?.discardActiveObject(); canvas?.renderAll(); commitCanvasEdit("Delete selected"); }}><Trash2 size={15} /> Delete selected</button></div> : detachedGroup ? <div className="selection-card"><span>Group children are separate editable objects.</span><button onClick={regroupLast}><Layers3 size={15} /> Regroup last</button></div> : <div className="selection-card"><span>Click an object; double-click a group to edit its text child directly. Properties stay in the ODA model and history.</span></div>}<span className="editor-label">CONTRACT</span><div className="contract-card"><b>oda.design/1.0</b><span>Strict Zod validation</span><span>Editable object graph</span><span>Bitmap / editable split</span></div></aside></section></main>;
 }

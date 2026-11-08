@@ -62,3 +62,41 @@ Export düğmesi `document.fonts.load` tamamlanmadan etkin işleme geçmiyor. Fo
 - `todo.md`
 
 Bu spike yeni dış servis, ücretli API veya yeni deploy kullanmadı. Kullanıcı onayıyla public `kadihx34-bit/open-atlas` repository’sine push tamamlandı; son GitHub commit’i `26a5b01`dir.
+
+
+## Increment 2 — Properties, direct child editing, local image assets
+
+The Properties panel is now driven by the selected ODA object. Text content, font family, font size, fill color, X/Y position, width/height and rotation update the validated ODA document and create history entries. A render-version guard prevents overlapping async Fabric renders from duplicating canvas objects.
+
+Group text remains editable without flattening. A double-click on a group routes the target text child into the same editable ODA object flow; the existing explicit child-edit/regroup controls remain available as a clear fallback. Child nodes remain separate objects in the group graph.
+
+Local image upload is client-only. The selected file is resized to a bounded JPEG data URL, stored in `assets` with `assetId`, `source: "user-upload"`, dimensions and alt text, and represented on canvas as an editable `image` object. The object supports selection, moving, scaling, deletion, crop/cover scale, reset crop and replace-local-image. Auth, S3 and external upload are untouched. IndexedDB save/open was verified after an image-bearing draft reload; the image rendered again from the saved ODA asset. A failed IndexedDB write reports a quota-oriented message rather than silently losing the draft.
+
+### Increment 2 browser evidence
+
+| Flow | Result |
+|---|---|
+| Properties selection panel | Passed; text fields for content/font/size/color/X/Y/W/H/rotation rendered for selected object |
+| Properties content update | Passed; browser input changed content and command count advanced from 4 to 25 |
+| Local image upload | Passed; fixture rendered and Properties showed `assetId` plus replace/crop controls |
+| Replace image | Passed; second fixture visibly replaced the first image and toast reported `Görsel değiştirildi` |
+| Crop/cover | Passed; range changed from `1` to `1.7`, image visibly zoomed and history advanced |
+| Save draft | Passed; IndexedDB toast reported `ODA taslağı IndexedDB'ye kaydedildi` |
+| Open draft after reload | Passed; image-bearing draft reopened and rendered from the local asset data URL |
+| Font-ready export | Passed; browser reported `2x PNG export hazırlandı` |
+| Exported PNG | Passed; `/home/ubuntu/Downloads/open-design-atlas-1080x1080@2x (1).png` measured `2160×2160`, RGBA, 184,677 bytes |
+| ODA local image contract | Passed; Vitest now covers declared user-upload asset plus crop metadata |
+
+### Increment 2 remaining DENENMELİ items
+
+1. Safari/iOS and Firefox behavior for file input, IndexedDB quota and 2x export still needs device-level verification.
+2. Very large images, private browsing and near-quota IndexedDB behavior should be tested with representative files; the implementation currently bounds the decoded image to 1400px and reports write failures.
+3. Crop currently stores a deterministic cover scale, not a freeform focal-point crop; a richer crop UI can follow without changing the asset/object split.
+4. Nested groups and a dedicated layers panel remain a later productization step.
+5. MCP/LLM patch application remains intentionally out of scope for this increment.
+
+
+Latest browser captures for this increment include `/home/ubuntu/screenshots/3000-il9yojhtwmwpktl_2026-11-08_10-51-58_8236.webp` for replace, `/home/ubuntu/screenshots/3000-il9yojhtwmwpktl_2026-11-08_10-52-07_8933.webp` for crop scale `1.7`, and `/home/ubuntu/screenshots/3000-il9yojhtwmwpktl_2026-11-08_10-49-21_2194.webp` plus the subsequent Open draft capture for image-bearing persistence. The explicit `Edit group children` fallback was browser-verified; exact pointer targeting of nested Fabric subTargets for a double-click should still be tested across device/browser combinations.
+
+
+Final group-intact verification: the selected typographic group exposed `Edit text child in place`; clicking it produced `Group child text editing — group intact`, selected the nested `type-kicker-*` child, opened its Content/Font/Size/Color Properties fields, and left the group rendered as a group. This is the supported equivalent interaction for browsers where Fabric sub-target double-click hit testing varies.
