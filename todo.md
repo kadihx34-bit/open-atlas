@@ -176,4 +176,4 @@
 - [x] Metin düzenleme, taşıma, ölçekleme, döndürme, silme ve undo/redo command history ekle.
 - [x] Tipografik blok, kart, çerçeve ve rozet gibi düzenlenebilir bileşik object grupları ekle.
 - [x] Unit/integration/browser doğrulamalarını çalıştır; ekran görüntüsü ve kalan DENENMELİ maddeleri `EDITOR-SPIKE-REPORT.md` içinde raporla.
-- [ ] Anlamlı commit(ler) ile public `open-atlas` repository’sine push et.
+- [x] Anlamlı commit(ler) ile public `open-atlas` repository’sine push et; checkpoint commit’i `3387ae9` olarak GitHub’a ulaştı.
