@@ -119,7 +119,7 @@ ODA 1.0 now carries a validated `brand` token object with editable colors (`prim
 | Full suite | Passed; 5 files, 12 tests |
 | TypeScript | Passed |
 
-Latest browser captures: `/home/ubuntu/screenshots/3000-il9yojhtwmwpktl_2026-11-08_11-02-58_2726.webp` for the Mineral preset, `/home/ubuntu/screenshots/3000-il9yojhtwmwpktl_2026-11-03-15_5403.webp` for patch application, and `/home/ubuntu/screenshots/3000-il9yojhtwmwpktl_2026-11-03-24_6458.webp` for undo. (The actual generated filenames use the complete timestamped paths in the screenshot directory.)
+Latest browser captures: `/home/ubuntu/screenshots/3000-il9yojhtwmwpktl_2026-11-08_11-02-58_2726.webp` for the Mineral preset, `/home/ubuntu/screenshots/3000-il9yojhtwmwpktl_2026-11-08_11-03-15_5403.webp` for patch application, and `/home/ubuntu/screenshots/3000-il9yojhtwmwpktl_2026-11-08_11-03-24_6458.webp` for undo.
 
 ### Brand/Patch remaining DENENMELİ items
 
