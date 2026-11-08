@@ -166,3 +166,14 @@
 - [x] Build, TypeScript ve mevcut test durumunu doğrula; belirsiz noktaları DENENMELİ olarak işaretle.
 - [x] GitHub açık kaynak paylaşımı için mevcut remote, repo erişimi ve push yetkisini kontrol et.
 - [x] Kullanıcı onayı olmadan dış servise yayınlama veya push yapma; kullanıcı onayı alındı ve public push tamamlandı.
+
+
+## Fabric.js SocialPostEditor spike
+- [ ] Fabric.js client-only bağımlılığını mevcut React 19 + Vite uygulamasına ekle ve `/editor` rotasını oluştur.
+- [ ] `oda.design/1.0` şemasını, Zod doğrulamasını ve açık bitmap/editable object ayrımını ekle.
+- [ ] 1080x1080 canvas için JSON serialize/deserialize ve IndexedDB local draft kaydet/aç döngüsünü bağla.
+- [ ] Font yükleme tamamlanmadan export’u kilitle; doğrulanmış 2x PNG export ekle.
+- [ ] Metin düzenleme, taşıma, ölçekleme, döndürme, silme ve undo/redo command history ekle.
+- [ ] Tipografik blok, kart, çerçeve ve rozet gibi düzenlenebilir bileşik object grupları ekle.
+- [ ] Unit/integration/browser doğrulamalarını çalıştır; ekran görüntüsü ve kalan DENENMELİ maddeleri raporla.
+- [ ] Anlamlı commit(ler) ile public `open-atlas` repository’sine push et.

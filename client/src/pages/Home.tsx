@@ -112,6 +112,7 @@ export default function Home() {
         <a href="#playground"><span>06</span>UI Playground</a>
         <a href="#three-gallery"><span>07</span>3D Library</a>
         <a href="#three-lab"><span>08</span>3D Lab</a>
+        <a href="/editor"><span>09</span>Social Post Editor <ArrowUpRight size={14} /></a>
       </nav>
       <div className="side-note"><span className="dot"></span><p>Bir sonraki yüzeyini<br /><b>buradan başlat.</b></p></div>
       <div className="side-footer"><span>CURATED BY OD</span><a href="https://github.com/alexpate/awesome-design-systems" target="_blank" rel="noreferrer">View source <ArrowUpRight size={12} /></a></div>

@@ -6,12 +6,14 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import TemplateDetail from "./pages/TemplateDetail";
+import Editor from "./pages/Editor";
 import NotFound from "./pages/NotFound";
 function Router() {
   // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
       <Route path={"/"} component={Home} />
+      <Route path="/editor" component={Editor} />
       <Route path="/templates/:slug" component={TemplateDetail} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
