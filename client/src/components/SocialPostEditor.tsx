@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowDownToLine, ChevronLeft, Circle, Copy, Frame, Layers3, Minus, Plus, Redo2, Square, Trash2, Type, Undo2, BadgeCheck } from "lucide-react";
+import { ArrowDownToLine, BadgeCheck, ChevronLeft, Circle, Copy, Frame, Layers3, Minus, Plus, Redo2, Square, Trash2, Type, Undo2 } from "lucide-react";
 import { toast } from "sonner";
 import { Canvas, Circle as FabricCircle, FabricObject, Group, IText, Line, Rect } from "fabric";
 import {
@@ -115,6 +115,7 @@ export default function SocialPostEditor({ onBack }: Props) {
   const [fontReady, setFontReady] = useState(false);
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const detachedGroup = useRef<{ group: Extract<ODAObject, { type: "group" }>; childIds: string[] } | null>(null);
   const [zoom, setZoom] = useState(() => typeof window === "undefined" ? 0.58 : Math.min(0.58, Math.max(0.3, (window.innerWidth - 24) / 1080)));
   const [, setHistoryTick] = useState(0);
 
@@ -188,17 +189,53 @@ export default function SocialPostEditor({ onBack }: Props) {
   function exportPng() { if (!fontReady) { toast.error("Fontlar yüklenmeden export kilitli"); return; } const canvas = fabricCanvas.current; if (!canvas) return; const url = canvas.toDataURL({ format: "png", multiplier: 2, width: 1080, height: 1080 }); const link = document.createElement("a"); link.href = url; link.download = "open-design-atlas-1080x1080@2x.png"; link.click(); toast.success("2x PNG export hazırlandı"); }
 
   function addText() { commit(addObjectToDesign(design, { id: `text-${Date.now()}`, type: "text", name: "text", x: 130, y: 850, width: 700, height: 70, rotation: 0, opacity: 1, locked: false, visible: true, zIndex: 8, content: "Edit this text", style: { fontFamily: "IBM Plex Sans", fontSize: 42, fontWeight: 500, lineHeight: 1.1, letterSpacing: 0, textAlign: "left", fill: "#F2F0E9" } }), "Add text"); }
-  function addRect() { commit(addObjectToDesign(design, { id: `rect-${Date.now()}`, type: "rect", name: "shape", x: 730, y: 110, width: 190, height: 190, rotation: 0, opacity: 1, locked: false, visible: true, zIndex: 7, style: { fill: "#F05A3C", stroke: null, radius: 20 } }), "Add shape"); }
+  function addCard() {
+    const stamp = Date.now();
+    commit(addObjectToDesign(design, { id: `card-${stamp}`, type: "group", name: "card", role: "card", x: 110, y: 730, width: 860, height: 220, rotation: 0, opacity: 1, locked: false, visible: true, zIndex: 7, children: [
+      { id: `card-bg-${stamp}`, type: "rect", x: 0, y: 0, width: 860, height: 220, rotation: 0, opacity: 1, locked: false, visible: true, zIndex: 0, style: { fill: "#F05A3C", stroke: null, radius: 18 } },
+      { id: `card-label-${stamp}`, type: "text", x: 28, y: 30, width: 240, height: 34, rotation: 0, opacity: 1, locked: false, visible: true, zIndex: 1, content: "CARD / EDITABLE", style: { fontFamily: "IBM Plex Mono", fontSize: 18, fontWeight: 500, lineHeight: 1, letterSpacing: 0, textAlign: "left", fill: "#111214" } },
+      { id: `card-copy-${stamp}`, type: "text", x: 28, y: 84, width: 760, height: 70, rotation: 0, opacity: 1, locked: false, visible: true, zIndex: 2, content: "A compound card, still made of objects.", style: { fontFamily: "Space Grotesk", fontSize: 34, fontWeight: 700, lineHeight: 1, letterSpacing: -1, textAlign: "left", fill: "#111214" } },
+    ] }), "Add card");
+  }
+  function addTypeBlock() {
+    const stamp = Date.now();
+    const id = `type-block-${stamp}`;
+    commit(addObjectToDesign(design, { id, type: "group", name: "typographic-block", role: "typographic-block", x: 110, y: 310, width: 800, height: 160, rotation: 0, opacity: 1, locked: false, visible: true, zIndex: 6, children: [
+      { id: `type-kicker-${stamp}`, type: "text", x: 0, y: 0, width: 300, height: 30, rotation: 0, opacity: 1, locked: false, visible: true, zIndex: 0, content: "TYPOGRAPHIC BLOCK", style: { fontFamily: "IBM Plex Mono", fontSize: 16, fontWeight: 500, lineHeight: 1, letterSpacing: 1, textAlign: "left", fill: "#F05A3C" } },
+      { id: `type-title-${stamp}`, type: "text", x: 0, y: 42, width: 800, height: 82, rotation: 0, opacity: 1, locked: false, visible: true, zIndex: 1, content: "Objects, not pixels.", style: { fontFamily: "Space Grotesk", fontSize: 58, fontWeight: 700, lineHeight: 1, letterSpacing: -2, textAlign: "left", fill: "#F2F0E9" } },
+    ] }), "Add typographic block");
+    setSelectedId(id);
+  }
   function addCircle() { commit(addObjectToDesign(design, { id: `ellipse-${Date.now()}`, type: "ellipse", name: "orb", x: 760, y: 710, width: 170, height: 170, rotation: 0, opacity: 1, locked: false, visible: true, zIndex: 7, style: { fill: "#F05A3C", stroke: null, radius: 85 } }), "Add circle"); }
   function addFrame() { commit(addObjectToDesign(design, { id: `frame-${Date.now()}`, type: "group", name: "frame", role: "frame", x: 120, y: 820, width: 840, height: 170, rotation: 0, opacity: 1, locked: false, visible: true, zIndex: 6, children: [{ id: `frame-inner-${Date.now()}`, type: "rect", x: 0, y: 0, width: 840, height: 170, rotation: 0, opacity: 1, locked: false, visible: true, zIndex: 0, style: { fill: "transparent", stroke: "#F2F0E9", strokeWidth: 3, radius: 12 } }, { id: `frame-label-${Date.now()}`, type: "text", x: 28, y: 55, width: 500, height: 50, rotation: 0, opacity: 1, locked: false, visible: true, zIndex: 1, content: "EDITABLE FRAME / 1080", style: { fontFamily: "IBM Plex Mono", fontSize: 24, fontWeight: 500, lineHeight: 1, letterSpacing: 0, textAlign: "left", fill: "#F2F0E9" } }] }), "Add frame"); }
   function addBadge() { commit(addObjectToDesign(design, { id: `badge-${Date.now()}`, type: "group", name: "badge", role: "badge", x: 760, y: 350, width: 190, height: 72, rotation: 0, opacity: 1, locked: false, visible: true, zIndex: 8, children: [{ id: `badge-bg-${Date.now()}`, type: "rect", x: 0, y: 0, width: 190, height: 72, rotation: 0, opacity: 1, locked: false, visible: true, zIndex: 0, style: { fill: "#F2F0E9", stroke: null, radius: 36 } }, { id: `badge-text-${Date.now()}`, type: "text", x: 25, y: 23, width: 140, height: 30, rotation: 0, opacity: 1, locked: false, visible: true, zIndex: 1, content: "ODA / READY", style: { fontFamily: "IBM Plex Mono", fontSize: 17, fontWeight: 500, lineHeight: 1, letterSpacing: 0, textAlign: "center", fill: "#111214" } }] }), "Add badge"); }
+  function editGroupChildren() {
+    const group = design.objects.find((object): object is Extract<ODAObject, { type: "group" }> => object.id === selectedId && object.type === "group");
+    if (!group) return;
+    detachedGroup.current = { group: cloneDesign({ ...design, objects: [group] }).objects[0] as Extract<ODAObject, { type: "group" }>, childIds: group.children.map((child) => child.id) };
+    const children = group.children.map((child) => ({ ...child, x: child.x + group.x, y: child.y + group.y }));
+    commit(validateODADesign({ ...cloneDesign(design), objects: design.objects.flatMap((object) => object.id === group.id ? children : [object]), metadata: { ...design.metadata, lastOperation: "edit" } }), "Edit group children");
+    setSelectedId(null);
+    toast.success("Group children ayrı ayrı düzenlenebilir");
+  }
+  function regroupLast() {
+    const detached = detachedGroup.current;
+    if (!detached) return;
+    const children = design.objects.filter((object): object is ODAObject => detached.childIds.includes(object.id)).map((child) => ({ ...child, x: child.x - detached.group.x, y: child.y - detached.group.y }));
+    if (children.length !== detached.childIds.length) { toast.error("Regroup için tüm child nesneleri gerekli"); return; }
+    const group = { ...detached.group, children };
+    commit(validateODADesign({ ...cloneDesign(design), objects: design.objects.filter((object) => !detached.childIds.includes(object.id)).concat(group), metadata: { ...design.metadata, lastOperation: "edit" } }), "Regroup children");
+    detachedGroup.current = null;
+    setSelectedId(group.id);
+    toast.success("Child nesneler tekrar group oldu");
+  }
 
   return <main className="editor-shell">
     <header className="editor-topbar"><button className="editor-back" onClick={onBack}><ChevronLeft size={16} /> Atlas</button><div><span className="editor-eyebrow">TECHNICAL SPIKE / ODA DESIGN</span><h1>SocialPostEditor</h1></div><div className="editor-top-actions"><span className={fontReady ? "editor-status ready" : "editor-status"}>{fontReady ? "FONTS READY" : "LOADING FONTS"}</span><button onClick={undo} title="Undo"><Undo2 size={17} /></button><button onClick={redo} title="Redo"><Redo2 size={17} /></button></div></header>
     <section className="editor-layout">
-      <aside className="editor-sidebar"><span className="editor-label">OBJECTS / EDITABLE</span><div className="editor-tool-grid"><button onClick={addText}><Type size={17} />Text</button><button onClick={addRect}><Square size={17} />Card</button><button onClick={addCircle}><Circle size={17} />Orb</button><button onClick={addFrame}><Frame size={17} />Frame</button><button onClick={addBadge}><BadgeCheck size={17} />Badge</button></div><div className="editor-divider" /><span className="editor-label">DOCUMENT</span><div className="editor-actions"><button onClick={save}><Copy size={16} /> Save draft</button><button onClick={open}><Layers3 size={16} /> Open draft</button><button className="export-action" onClick={exportPng}><ArrowDownToLine size={16} /> Export 2x PNG</button></div><p className="editor-hint">All objects remain in the ODA JSON model. Groups contain editable children; bitmap assets are kept separate and are not flattened into the document.</p></aside>
+      <aside className="editor-sidebar"><span className="editor-label">OBJECTS / EDITABLE</span><div className="editor-tool-grid"><button onClick={addText}><Type size={17} />Text</button><button onClick={addTypeBlock}><Type size={17} />Type block</button><button onClick={addCard}><Square size={17} />Card</button><button onClick={addCircle}><Circle size={17} />Orb</button><button onClick={addFrame}><Frame size={17} />Frame</button><button onClick={addBadge}><BadgeCheck size={17} />Badge</button></div><div className="editor-divider" /><span className="editor-label">DOCUMENT</span><div className="editor-actions"><button onClick={save}><Copy size={16} /> Save draft</button><button onClick={open}><Layers3 size={16} /> Open draft</button><button className="export-action" onClick={exportPng}><ArrowDownToLine size={16} /> Export 2x PNG</button></div><p className="editor-hint">All objects remain in the ODA JSON model. Groups contain editable children; bitmap assets are kept separate and are not flattened into the document.</p></aside>
       <div className="editor-stage-wrap"><div className="editor-stage-head"><span>1080 × 1080 / {Math.round(zoom * 100)}%</span><span>{selectedId ? `SELECTED / ${selectedId}` : "SELECT AN OBJECT"}</span></div><div className="editor-stage"><canvas ref={canvasElement} /></div><div className="editor-stage-foot"><button onClick={() => setZoom((value) => Math.max(.3, value - .05))}><Minus size={14} /></button><button onClick={() => setZoom((value) => Math.min(.8, value + .05))}><Plus size={14} /></button><span>{savedAt ? `LOCAL DRAFT / ${savedAt}` : "LOCAL-FIRST / NOT SAVED"}</span><span className="editor-history">{historyIndex.current + 1} / {history.current.length} commands</span></div></div>
-      <aside className="editor-inspector"><span className="editor-label">CONTRACT</span><div className="contract-card"><b>oda.design/1.0</b><span>Strict Zod validation</span><span>Editable object graph</span><span>Bitmap / editable split</span></div><span className="editor-label">SELECTION</span><div className="selection-card">{selectedId ? <><strong>{selectedId}</strong><span>Fabric object ↔ ODA object</span><button onClick={() => { const canvas = fabricCanvas.current; canvas?.getActiveObjects().forEach((object) => canvas.remove(object)); canvas?.discardActiveObject(); canvas?.renderAll(); commitCanvasEdit("Delete selected"); }}><Trash2 size={15} /> Delete selected</button></> : <span>Click a text, card, frame or badge to edit it directly on the canvas.</span>}</div><span className="editor-label">ALLOWED FONTS</span><div className="font-list">{ODA_FONT_FAMILIES.slice(0, 7).map((font) => <span key={font}>{font}</span>)}</div></aside>
+      <aside className="editor-inspector"><span className="editor-label">CONTRACT</span><div className="contract-card"><b>oda.design/1.0</b><span>Strict Zod validation</span><span>Editable object graph</span><span>Bitmap / editable split</span></div><span className="editor-label">SELECTION</span><div className="selection-card">{selectedId ? <><strong>{selectedId}</strong><span>Fabric object ↔ ODA object</span>{design.objects.find((object) => object.id === selectedId)?.type === "group" && <button onClick={editGroupChildren}><Layers3 size={15} /> Edit group children</button>}<button onClick={() => { const canvas = fabricCanvas.current; canvas?.getActiveObjects().forEach((object) => canvas.remove(object)); canvas?.discardActiveObject(); canvas?.renderAll(); commitCanvasEdit("Delete selected"); }}><Trash2 size={15} /> Delete selected</button></> : detachedGroup.current ? <><span>Group children are separate editable objects.</span><button onClick={regroupLast}><Layers3 size={15} /> Regroup last</button></> : <span>Click a text, card, frame or badge to edit it directly on the canvas. Select a group to edit its children separately.</span>}</div><span className="editor-label">ALLOWED FONTS</span><div className="font-list">{ODA_FONT_FAMILIES.slice(0, 7).map((font) => <span key={font}>{font}</span>)}</div></aside>
     </section>
   </main>;
 }

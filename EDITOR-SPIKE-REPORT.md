@@ -14,7 +14,7 @@ Fabric.js 6.9.1, mevcut React 19 + Vite uygulamasına bağımsız `SocialPostEdi
 
 `client/src/lib/odaDesign.ts`, `oda.design/1.0` sözleşmesini Zod ile tanımlıyor. Şema 1080×1080 belge ölçülerini, safe area’yı, allowlist font kataloğunu, strict nesne alanlarını, benzersiz ID’leri ve image asset referanslarını kontrol ediyor. İlk bileşen modeli `text`, `rect`, `ellipse`, `line`, `image` ve bileşik `group` türlerini içeriyor. Group; `typographic-block`, `card`, `frame`, `badge` veya `custom` rolüyle çocuk nesneler taşır. Böylece kart, rozet ve çerçeve gibi parçalar bitmap/flatten çıktı değil, tekrar düzenlenebilir nesne graph’ı olarak kalıyor. Bitmap görsel varlıkları ise ayrı `assets` koleksiyonunda `assetId`, `sourceKind` ve metadata ile tutuluyor.
 
-Editör araçları metin, card, orb, frame ve badge ekleyebiliyor. Fabric’in doğrudan canvas etkileşimleriyle text seçimi/düzenleme, taşıma, ölçekleme ve döndürme kullanılabiliyor; Delete/Backspace nesne silebiliyor. State snapshot tabanlı command history ile toolbar ve `Ctrl/Cmd+Z`, `Ctrl/Cmd+Shift+Z` undo/redo sağlandı.
+Editör araçları metin, typographic block, card, orb, frame ve badge ekleyebiliyor. Fabric’in doğrudan canvas etkileşimleriyle text seçimi/düzenleme, taşıma, ölçekleme ve döndürme kullanılabiliyor; Delete/Backspace nesne silebiliyor. State snapshot tabanlı command history ile toolbar ve `Ctrl/Cmd+Z`, `Ctrl/Cmd+Shift+Z` undo/redo sağlandı. Group seçildiğinde `Edit group children` akışı group’u geçici olarak child nesnelere ayırıyor; child’lar ayrı editable Fabric/ODA nesneleri olarak kalıyor ve `Regroup last` ile tekrar aynı bileşik group’a dönüyor. Bu döngü gerçek tarayıcıda typographic block ile doğrulandı.
 
 Save draft ve Open draft, `open-design-atlas-editor` IndexedDB store’unda local-first çalışıyor. Gerçek tarayıcı smoke testinde badge ve text eklenmiş belge kaydedildi, sayfa yenilendi ve aynı görsel nesne düzeni IndexedDB’den geri yüklendi.
 
@@ -30,6 +30,7 @@ Export düğmesi `document.fonts.load` tamamlanmadan etkin işleme geçmiyor. Fo
 | IndexedDB save/open | Başarılı; refresh sonrası draft geri yüklendi |
 | 2x PNG export | Başarılı; çıktı gerçek boyut `2160×2160` |
 | Undo/redo | Başarılı; text ekleme undo ile kaldırıldı, redo ile geri geldi |
+| Compound group child edit | Başarılı; typographic block ungroup → child graph → regroup döngüsü browser’da doğrulandı |
 | ODA Zod geçerli belge | Başarılı |
 | Duplicate object ID reddi | Başarılı |
 | Eksik image asset reddi | Başarılı |
@@ -40,7 +41,7 @@ Export düğmesi `document.fonts.load` tamamlanmadan etkin işleme geçmiyor. Fo
 ## Kalan DENENMELİ maddeleri
 
 1. Gerçek kullanıcı akışında Fabric `IText` çift tıklama text editing, resize ve rotate davranışları masaüstü ve mobil dokunmatik cihazlarda ayrıca denenmeli.
-2. Group içindeki tekil child nesnelerin seçilip düzenlenmesi/ungroup akışı henüz ürünleştirilmedi; spike’ta group taşıma ve ODA child graph korunumu kanıtlandı.
+2. Group child’larının Fabric canvas üzerinde tek tıkla seçilmesi yerine güvenilir ve açık bir `Edit group children`/`Regroup last` akışı kullanılıyor; nested group, keyboard shortcut ve daha ayrıntılı layer paneli sonraki ürünleştirme adımında denenmeli.
 3. Image asset’in gerçek kullanıcı upload’ından `assets` koleksiyonuna alınması, Fabric image render’ı ve local draft reload akışı sonraki spike’ta eklenmeli. Bu değişiklik mevcut S3/auth akışına özellikle eklenmedi.
 4. Ağ yavaşken `document.fonts.load` reddi, font fallback’i ve custom user font yükleme politikası denenmeli.
 5. Safari, Firefox, iOS Safari ve farklı devicePixelRatio değerlerinde 2x export piksel doğruluğu ayrıca denenmeli.

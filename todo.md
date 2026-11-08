@@ -169,11 +169,11 @@
 
 
 ## Fabric.js SocialPostEditor spike
-- [ ] Fabric.js client-only bağımlılığını mevcut React 19 + Vite uygulamasına ekle ve `/editor` rotasını oluştur.
-- [ ] `oda.design/1.0` şemasını, Zod doğrulamasını ve açık bitmap/editable object ayrımını ekle.
-- [ ] 1080x1080 canvas için JSON serialize/deserialize ve IndexedDB local draft kaydet/aç döngüsünü bağla.
-- [ ] Font yükleme tamamlanmadan export’u kilitle; doğrulanmış 2x PNG export ekle.
-- [ ] Metin düzenleme, taşıma, ölçekleme, döndürme, silme ve undo/redo command history ekle.
-- [ ] Tipografik blok, kart, çerçeve ve rozet gibi düzenlenebilir bileşik object grupları ekle.
-- [ ] Unit/integration/browser doğrulamalarını çalıştır; ekran görüntüsü ve kalan DENENMELİ maddeleri raporla.
+- [x] Fabric.js client-only bağımlılığını mevcut React 19 + Vite uygulamasına ekle ve `/editor` rotasını oluştur.
+- [x] `oda.design/1.0` şemasını, Zod doğrulamasını ve açık bitmap/editable object ayrımını ekle.
+- [x] 1080x1080 canvas için JSON serialize/deserialize ve IndexedDB local draft kaydet/aç döngüsünü bağla.
+- [x] Font yükleme tamamlanmadan export’u kilitle; doğrulanmış 2x PNG export ekle.
+- [x] Metin düzenleme, taşıma, ölçekleme, döndürme, silme ve undo/redo command history ekle.
+- [x] Tipografik blok, kart, çerçeve ve rozet gibi düzenlenebilir bileşik object grupları ekle.
+- [x] Unit/integration/browser doğrulamalarını çalıştır; ekran görüntüsü ve kalan DENENMELİ maddeleri `EDITOR-SPIKE-REPORT.md` içinde raporla.
 - [ ] Anlamlı commit(ler) ile public `open-atlas` repository’sine push et.
