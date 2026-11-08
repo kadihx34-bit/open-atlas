@@ -72,6 +72,22 @@ const imageObject = baseObject.extend({
   crop: z.object({ x: finite, y: finite, scale: finite.positive().max(20) }).optional(),
 });
 
+export const ODA_BRAND_COLOR_KEYS = ["primary", "secondary", "accent", "surface", "text"] as const;
+export const ODA_BRAND_FONT_KEYS = ["display", "body", "mono"] as const;
+const brandKitSchema = z.object({
+  name: z.string().min(1).max(120),
+  colors: z.object({
+    primary: color,
+    secondary: color,
+    accent: color,
+    surface: color,
+    text: color,
+  }),
+  fonts: z.object({ display: fontFamily, body: fontFamily, mono: fontFamily }),
+  logoAssetId: z.string().min(1).max(100).nullable(),
+  imageAssetIds: z.array(z.string().min(1).max(100)).max(16),
+});
+
 export const odaObjectSchema: z.ZodType<ODAObject> = z.lazy(() => z.discriminatedUnion("type", [
   textObject,
   rectObject,
@@ -106,6 +122,7 @@ export const odaDesignSchema = z.object({
     height: finite.positive(),
     source: z.enum(["user-upload", "generated", "bitmap"]),
   })).max(64),
+  brand: brandKitSchema,
   objects: z.array(odaObjectSchema).max(200),
   metadata: z.object({
     createdBy: z.enum(["human", "ai", "human-or-ai"]),
@@ -115,6 +132,12 @@ export const odaDesignSchema = z.object({
 }).superRefine((document, ctx) => {
   const ids = new Set<string>();
   const assetIds = new Set(document.assets.map((asset) => asset.id));
+  if (document.brand.logoAssetId && !assetIds.has(document.brand.logoAssetId)) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: `Missing brand logo asset: ${document.brand.logoAssetId}`, path: ["brand", "logoAssetId"] });
+  }
+  document.brand.imageAssetIds.forEach((assetId, index) => {
+    if (!assetIds.has(assetId)) ctx.addIssue({ code: z.ZodIssueCode.custom, message: `Missing brand image asset: ${assetId}`, path: ["brand", "imageAssetIds", index] });
+  });
   const visit = (object: ODAObject) => {
     if (ids.has(object.id)) ctx.addIssue({ code: z.ZodIssueCode.custom, message: `Duplicate object id: ${object.id}`, path: ["objects"] });
     ids.add(object.id);
@@ -133,6 +156,7 @@ export type ODAObject =
   | { id: string; name?: string; x: number; y: number; width: number; height: number; rotation: number; opacity: number; locked: boolean; visible: boolean; zIndex: number; type: "group"; role: "typographic-block" | "card" | "frame" | "badge" | "custom"; children: ODAObject[] };
 export type ODAFont = z.infer<typeof odaDesignSchema>["fonts"][number];
 export type ODADesign = z.infer<typeof odaDesignSchema>;
+export type ODABrandKit = ODADesign["brand"];
 
 export function validateODADesign(input: unknown): ODADesign {
   return odaDesignSchema.parse(input);
@@ -153,6 +177,13 @@ export const starterDesign: ODADesign = {
     { family: "IBM Plex Sans", weight: 400, style: "normal" },
   ],
   assets: [],
+  brand: {
+    name: "Open Design Atlas",
+    colors: { primary: "#315CFF", secondary: "#F05A3C", accent: "#F2F0E9", surface: "#111214", text: "#F2F0E9" },
+    fonts: { display: "Space Grotesk", body: "IBM Plex Sans", mono: "IBM Plex Mono" },
+    logoAssetId: null,
+    imageAssetIds: [],
+  },
   objects: [
     {
       id: "headline",

@@ -7,3 +7,13 @@
 - [x] Basit image crop/replace akışını ve IndexedDB draft davranışını ekle; büyük bitmap quota riskini raporla.
 - [x] Unit/integration/browser testlerini, save/open/export ve yeni akış ekran görüntülerini doğrula; raporu güncelle.
 - [x] Anlamlı commit(ler) ile public `open-atlas` repository’sine push et.
+
+
+## Brand Kit + AI Patch preparation
+- [x] ODA şemasına marka tokenları ekle: renkler, font setleri, logo/görsel asset referansları.
+- [x] Editörde marka presetlerini uygula; tokenları editable nesnelere dönüştür, flatten kullanma.
+- [x] JSON AI patch sözleşmesini Zod ile tanımla; allowlist ve güvenlik kurallarını ekle.
+- [x] Deterministik mock patch üretici ve güvenli undo’lu uygulama katmanı ekle; gerçek LLM/API bağlama.
+- [x] Patch üret → doğrula → uygula → geri al uçtan uca testini unit ve browser’da kanıtla.
+- [x] Testler, ekran görüntüleri ve kalan DENENMELİ maddeleri rapora ekle.
+- [x] Anlamlı commit ile public `open-atlas` repository’sine push et.

@@ -100,3 +100,37 @@ Latest browser captures for this increment include `/home/ubuntu/screenshots/300
 
 
 Final group-intact verification: the selected typographic group exposed `Edit text child in place`; clicking it produced `Group child text editing — group intact`, selected the nested `type-kicker-*` child, opened its Content/Font/Size/Color Properties fields, and left the group rendered as a group. This is the supported equivalent interaction for browsers where Fabric sub-target double-click hit testing varies.
+
+
+## Brand Kit + AI Patch preparation
+
+ODA 1.0 now carries a validated `brand` token object with editable colors (`primary`, `secondary`, `accent`, `surface`, `text`), a display/body/mono font set, an optional logo asset reference and image asset references. The schema rejects missing brand asset references. Two local presets, Signal Atlas and Mineral Studio, apply tokens to the document background and existing text/rect/group object styles; the objects remain ordinary editable ODA nodes rather than flattened artwork.
+
+`client/src/lib/odaPatch.ts` defines `oda.patch/1.0` with replace/add/remove operations, strict root/path allowlists, prototype-pollution rejection and final ODA Zod validation. `createMockAIPatch` is deterministic and local-only. `applyODAPatch` returns both a validated next design and an inverse patch, so the editor’s existing history/Undo path can safely reverse the operation. No LLM, model endpoint, API key, MCP call or external service is connected.
+
+### Brand and patch evidence
+
+| Flow | Result |
+|---|---|
+| Mineral brand preset | Passed in browser; toast reported `Mineral Studio preset applied — objects remain editable`, background and editable text/card styles changed |
+| Mock patch generation/application | Passed in browser; toast reported `Mock AI patch applied: 3 operations`, history advanced to `3 / 3 commands` |
+| Safe undo | Passed in browser; Undo returned history to `2 / 3 commands` and restored the prior preset appearance |
+| Patch unit tests | Passed; deterministic apply/inverse round-trip and unsafe path rejection covered |
+| Full suite | Passed; 5 files, 12 tests |
+| TypeScript | Passed |
+
+Latest browser captures: `/home/ubuntu/screenshots/3000-il9yojhtwmwpktl_2026-11-08_11-02-58_2726.webp` for the Mineral preset, `/home/ubuntu/screenshots/3000-il9yojhtwmwpktl_2026-11-03-15_5403.webp` for patch application, and `/home/ubuntu/screenshots/3000-il9yojhtwmwpktl_2026-11-03-24_6458.webp` for undo. (The actual generated filenames use the complete timestamped paths in the screenshot directory.)
+
+### Brand/Patch remaining DENENMELİ items
+
+1. Add a real logo asset through the existing local upload flow and verify `brand.logoAssetId` plus `imageAssetIds` persistence in IndexedDB.
+2. Expand patch paths to nested group child IDs and add explicit patch-size/operation budgets before any real model is considered.
+3. Define a human-readable patch preview/diff UI and require user approval before applying future AI-generated patches.
+4. Cross-browser validation for JSON patch behavior and IndexedDB draft recovery remains outstanding.
+
+
+## Next phase boundary
+
+The user has separately approved a future embedded website-builder AI phase, with auto-top-up disabled, no external API keys/services, usage measured in the Websites & games billing panel, and an explicit stop before the unused $1 allowance is approached. That phase is intentionally **not connected in this increment**: no LLM, image-generation model, GPT-5 nano, MCP call or paid/free usage was invoked here. The deterministic mock remains clearly labeled as a test tool. A future Lunatic esports post generation pass should keep text/layout as editable ODA objects while labeling any generated bitmap as bitmap/non-editable.
+
+Custom font upload/on-demand font loading, provider-backed background removal, procedural effect round-trip fields, and the later component package are queued for subsequent work; no font research or provider research was performed in this increment.
