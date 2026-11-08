@@ -157,3 +157,12 @@
 - [x] Local Component Library başlığına veya footer’ına 3.802 Uiverse Registry Explorer’a giden görünür CTA ekle.
 - [x] Bu düzeltmelerden sonra Registry Explorer akışını yeniden test edip checkpoint oluştur.
 - [ ] GitHub hesabında CreateRepository yetkisi sağlandıktan sonra private `open-design-atlas` repository’si oluşturup push et veya Management UI GitHub Export akışını tamamla.
+
+
+## Fizibilite raporu ve açık kaynak paylaşımı
+- [ ] Proje yapısını, rotaları, bileşenleri, stilleri ve build akışını kod değiştirmeden incele.
+- [ ] Fabric.js/canva-clone yolunu ve hafif sıfırdan editör yolunu kanıtlarla karşılaştır; klon test edilmediyse seçimi açık bırak.
+- [ ] AI tasarım nesnesi JSON sözleşmesini, izinli türleri, fontları ve doğrulama/reddetme kurallarını raporla.
+- [ ] Build, TypeScript ve mevcut test durumunu doğrula; belirsiz noktaları DENENMELİ olarak işaretle.
+- [ ] GitHub açık kaynak paylaşımı için mevcut remote, repo erişimi ve push yetkisini kontrol et.
+- [ ] Kullanıcı onayı olmadan dış servise yayınlama veya push yapma.
