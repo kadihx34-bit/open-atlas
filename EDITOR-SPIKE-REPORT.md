@@ -61,4 +61,4 @@ Export düğmesi `document.fonts.load` tamamlanmadan etkin işleme geçmiyor. Fo
 - `package.json` / `pnpm-lock.yaml`
 - `todo.md`
 
-Bu spike yeni dış servis, ücretli API veya yeni deploy kullanmadı. Public `kadihx34-bit/open-atlas` repository’sine push için kullanıcı onayıyla anlamlı bir commit hazırlanacak.
+Bu spike yeni dış servis, ücretli API veya yeni deploy kullanmadı. Kullanıcı onayıyla public `kadihx34-bit/open-atlas` repository’sine push tamamlandı; son GitHub commit’i `26a5b01`dir.
